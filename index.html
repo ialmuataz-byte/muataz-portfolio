@@ -416,6 +416,18 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   font-size:46px;
   border-bottom:1.5px solid var(--border);
 }
+.port-thumb-logos{
+  background:var(--white);
+  gap:18px;
+  padding:18px;
+}
+.port-logo-img{
+  max-height:120px;
+  max-width:30%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
 .port-body{padding:26px;}
 .port-tag{
   display:inline-block;
@@ -727,7 +739,7 @@ const portfolio = [
    titleAr:"أواصر — محتوى منصات التواصل",titleEn:"Awasr — Social Media Content",
    descAr:"كتابة محتوى منصات التواصل الاجتماعي لشركة أواصر خلال الفترة من 15 سبتمبر 2025 إلى 8 فبراير 2026، مع التركيز على الوضوح والقرب من الجمهور.",
    descEn:"Created social media content for Awasr between September 15, 2025 and February 8, 2026, focusing on clarity, audience relevance, and brand voice consistency."},
-  {icon:"🏢",tagAr:"إدارة المحتوى والمنصات",tagEn:"Content & Platform Management",
+  {icon:"🏢",logos:["asaas-logo.png","araya-logo.png","ssa-logo.png"],tagAr:"إدارة المحتوى والمنصات",tagEn:"Content & Platform Management",
    titleAr:"أساس — إدارة الحسابات والمشاريع",titleEn:"ASAAS — Accounts & Projects Management",
    descAr:"تأسيس وإدارة حسابات العمل في شركة أساس والمشاريع التابعة لها: حساب أساس منذ 2018، وسوق شاطئ الحافة منذ 2023، ومجمع الراية بين 2021 و2023.",
    descEn:"Established and managed the digital presence of ASAAS and its projects: ASAAS since 2018, Souq Shati Al Hafa since 2023, and A'Raya Complex from 2021 to 2023."},
@@ -767,7 +779,11 @@ function renderPortfolio(lang){
   const grid = document.getElementById('portfolio-grid');
   grid.innerHTML = portfolio.map(p=>`
     <div class="port-card">
-      <div class="port-thumb">${p.icon}</div>
+      <div class="port-thumb ${p.logos?'port-thumb-logos':''}">
+        ${p.logos
+          ? p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('')
+          : p.icon}
+      </div>
       <div class="port-body">
         <span class="port-tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
         <h3>${lang==='ar'?p.titleAr:p.titleEn}</h3>
