@@ -67,8 +67,9 @@ h1,h2,h3{font-weight:900;line-height:1.25;}
 
 .underline-yellow{
   position:relative;
-  display:inline-block;
-  white-space:nowrap;
+  display:inline;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
 }
 .underline-yellow::after{
   content:"";
@@ -552,7 +553,7 @@ footer{
 
 <header>
   <div class="nav-wrap">
-    <div class="logo" data-ar="المعتز<span>.</span>" data-en="Muataz<span>.</span>">المعتز<span>.</span></div>
+    <div class="logo" data-ar-html="المعتز<span>.</span>" data-en-html="Muataz<span>.</span>">المعتز<span>.</span></div>
     <nav class="nav-links">
       <a href="#hero" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
       <a href="#about" data-ar="عني" data-en="About">عني</a>
