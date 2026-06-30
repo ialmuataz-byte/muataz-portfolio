@@ -41,7 +41,15 @@ a{text-decoration:none;color:inherit;}
 
 ul{list-style:none;}
 
-section{padding:90px 6%;}
+section{padding:90px 0;overflow:hidden;}
+
+.container{
+  max-width:1240px;
+  margin:0 auto;
+  padding:0 6%;
+  width:100%;
+  box-sizing:border-box;
+}
 
 .eyebrow{
   display:inline-block;
@@ -115,6 +123,9 @@ header{
   align-items:center;
   justify-content:space-between;
   padding:18px 6%;
+  max-width:1240px;
+  margin:0 auto;
+  box-sizing:border-box;
 }
 .logo{
   font-weight:900;
@@ -175,15 +186,19 @@ header{
 
 /* ============ HERO ============ */
 .hero{
+  padding-top:70px;
+  padding-bottom:70px;
+  min-height:80vh;
+  display:flex;
+  align-items:center;
+}
+.hero-inner{
   display:grid;
   grid-template-columns:1.1fr .9fr;
   gap:50px;
   align-items:center;
-  padding-top:70px;
-  padding-bottom:70px;
-  min-height:80vh;
 }
-body.lang-en .hero{grid-template-columns:1.1fr .9fr;}
+body.lang-en .hero-inner{grid-template-columns:1.1fr .9fr;}
 body.lang-ar .hero{direction:rtl;}
 
 .hero-text h1{
@@ -324,6 +339,55 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
 .about-text p{margin-bottom:20px;}
 .about-text .underline-yellow::after{bottom:0;}
 
+/* ============ FEATURED WORK ============ */
+.featured-work{
+  display:block;
+  position:relative;
+  width:100%;
+  max-width:560px;
+  margin:0 auto 50px;
+  border:1.5px solid var(--border);
+  border-radius:22px;
+  overflow:hidden;
+  background:var(--white);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.featured-work:hover{
+  transform:translateY(-6px);
+  box-shadow:10px 10px 0 var(--yellow);
+}
+.featured-img{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  overflow:hidden;
+  border-bottom:1.5px solid var(--border);
+}
+.featured-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.featured-play{
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:78px; height:78px;
+  background:var(--yellow);
+  border:2px solid var(--border);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:var(--dark);
+  transition:transform .25s ease;
+}
+.featured-work:hover .featured-play{transform:translate(-50%,-50%) scale(1.12);}
+.featured-caption{padding:26px;}
+.featured-caption h3{font-size:22px;margin:12px 0 8px;}
+.featured-caption p{color:var(--muted);font-size:14.5px;}
+
 /* ============ PORTFOLIO ============ */
 .portfolio-grid{
   display:grid;
@@ -456,7 +520,7 @@ footer{
 @media(max-width:900px){
   .nav-links{display:none;}
   .burger{display:block;}
-  .hero{grid-template-columns:1fr;text-align:center;}
+  .hero-inner{grid-template-columns:1fr;text-align:center;}
   .hero-img-wrap{order:-1;}
   .hero-btns{justify-content:center;}
   .tag-row{justify-content:center;}
@@ -492,7 +556,6 @@ footer{
     <nav class="nav-links">
       <a href="#hero" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
       <a href="#about" data-ar="عني" data-en="About">عني</a>
-      <a href="#services" data-ar="الخدمات" data-en="Services">الخدمات</a>
       <a href="#portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
       <a href="#skills" data-ar="المهارات" data-en="Skills">المهارات</a>
       <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
@@ -509,7 +572,6 @@ footer{
   <div class="mobile-nav" id="mnav">
     <a href="#hero" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
     <a href="#about" data-ar="عني" data-en="About">عني</a>
-    <a href="#services" data-ar="الخدمات" data-en="Services">الخدمات</a>
     <a href="#portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
     <a href="#skills" data-ar="المهارات" data-en="Skills">المهارات</a>
     <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
@@ -518,6 +580,7 @@ footer{
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="hero">
+  <div class="container hero-inner">
   <div class="hero-text">
     <p class="eyebrow" data-ar="كاتب محتوى إبداعي • مختص تسويق" data-en="Creative Content Writer • Marketing Specialist">كاتب محتوى إبداعي • مختص تسويق</p>
     <h1>
@@ -538,6 +601,7 @@ footer{
     <!-- استبدل الصورة هنا إذا رغبت بصورة أخرى / Replace with another photo if needed -->
     <img src="profile.jpg" alt="Al Muataz Al Saqri" class="hero-img">
   </div>
+  </div>
 </section>
 
 <!-- ============ SPECIALIZATION STRIP ============ -->
@@ -545,15 +609,7 @@ footer{
   <div class="strip-track" id="strip-track"></div>
 </div>
 
-<!-- ============ SERVICES ============ -->
-<section id="services">
-  <div class="section-head">
-    <p class="eyebrow" data-ar="ماذا أقدّم" data-en="What I Offer">ماذا أقدّم</p>
-    <h2 data-ar="الخدمات." data-en="Services.">الخدمات.</h2>
-    <p data-ar="خدمات تساعد الجهات على قول ما تريد، بالطريقة التي يتذكرها الجمهور." data-en="Services that help brands say what they mean in a way people remember.">خدمات تساعد الجهات على قول ما تريد، بالطريقة التي يتذكرها الجمهور.</p>
-  </div>
-  <div class="services-grid" id="services-grid"></div>
-</section>
+
 
 <!-- ============ ABOUT ============ -->
 <section id="about">
@@ -568,24 +624,42 @@ footer{
 
 <!-- ============ PORTFOLIO ============ -->
 <section id="portfolio">
+  <div class="container">
   <div class="section-head">
     <p class="eyebrow" data-ar="نماذج من العمل" data-en="Selected Highlights">نماذج من العمل</p>
     <h2 data-ar="أعمال مختارة." data-en="Selected Work.">أعمال مختارة.</h2>
   </div>
+
+  <a href="https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p" target="_blank" rel="noopener" class="featured-work">
+    <div class="featured-img">
+      <img src="https://img.youtube.com/vi/5v79RTfReto/maxresdefault.jpg" alt="Featured Work" loading="lazy">
+      <div class="featured-play">▶</div>
+    </div>
+    <div class="featured-caption">
+      <span class="port-tag" data-ar="أبرز عمل" data-en="Featured Work">أبرز عمل</span>
+      <h3 data-ar="عشقناك كالمستحيل — أواصر" data-en="Ashaqnak Kal Mustaheel — Awasr">عشقناك كالمستحيل — أواصر</h3>
+      <p data-ar="شاهد العمل الوطني الكامل على يوتيوب" data-en="Watch the full national piece on YouTube">شاهد العمل الوطني الكامل على يوتيوب</p>
+    </div>
+  </a>
+
   <div class="portfolio-grid" id="portfolio-grid"></div>
+  </div>
 </section>
 
 <!-- ============ SKILLS ============ -->
 <section id="skills">
+  <div class="container">
   <div class="section-head">
     <p class="eyebrow" data-ar="القدرات" data-en="Capabilities">القدرات</p>
     <h2 data-ar="المهارات." data-en="Skills.">المهارات.</h2>
   </div>
   <div class="skills-grid" id="skills-grid"></div>
+  </div>
 </section>
 
 <!-- ============ TESTIMONIALS ============ -->
 <section id="testimonials">
+  <div class="container">
   <div class="section-head">
     <p class="eyebrow" data-ar="آراء" data-en="Feedback">آراء</p>
     <h2 data-ar="شهادات." data-en="Testimonials.">شهادات.</h2>
@@ -593,10 +667,12 @@ footer{
   <div class="testimonial-box" data-ar="مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة." data-en="Placeholder for client testimonials and partner feedback.">
     مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة.
   </div>
+  </div>
 </section>
 
 <!-- ============ CTA ============ -->
 <section>
+  <div class="container">
   <div class="cta">
     <h2 data-ar="لديك مشروع يحتاج إلى فكرة؟ دعنا نحوله إلى محتوى يُتذكر." data-en="Have a project that needs a strong idea? Let's turn it into content people remember.">لديك مشروع يحتاج إلى فكرة؟ دعنا نحوله إلى محتوى يُتذكر.</h2>
     <div class="cta-btns">
@@ -604,10 +680,12 @@ footer{
       <a href="#portfolio" class="btn btn-outline" data-ar="شاهد الأعمال" data-en="View Work">شاهد الأعمال</a>
     </div>
   </div>
+  </div>
 </section>
 
 <!-- ============ FOOTER / CONTACT ============ -->
 <footer id="contact">
+  <div class="container">
   <div class="footer-grid">
     <div>
       <div class="footer-name" data-ar="المعتز الصقري" data-en="Al Muataz Al Saqri">المعتز الصقري</div>
@@ -626,6 +704,7 @@ footer{
     </div>
   </div>
   <div class="footer-bottom" data-ar="© 2026 المعتز الصقري. جميع الحقوق محفوظة." data-en="© 2026 Al Muataz Al Saqri. All rights reserved.">© 2026 المعتز الصقري. جميع الحقوق محفوظة.</div>
+  </div>
 </footer>
 
 <script>
@@ -635,20 +714,7 @@ const stripItems = {
   en:["Content Writing","Strategy Building","Social Media Management","Creative Campaigns","Verbal Identity"]
 };
 
-const services = [
-  {ar:["كتابة المحتوى الرقمي","صياغة محتوى واضح، ذكي، ومناسب للمنصات الرقمية، يحافظ على صوت العلامة ويخاطب الجمهور بلغة قريبة."],
-   en:["Digital Content Writing","Crafting clear, smart content tailored to digital platforms — keeping the brand voice consistent while speaking the audience's language."]},
-  {ar:["بناء استراتيجيات المحتوى","تحويل الأهداف التسويقية إلى خطة محتوى قابلة للتنفيذ، تربط الرسائل بالجمهور والقنوات والنتائج."],
-   en:["Content Strategy","Turning marketing goals into an actionable content plan that connects messages to audience, channels, and results."]},
-  {ar:["كتابة الحملات","ابتكار أفكار ورسائل للحملات التسويقية والاتصالية، من الفكرة الرئيسية إلى العناوين والنصوص الداعمة."],
-   en:["Campaign Copywriting","Developing ideas and messages for marketing and communication campaigns — from the core concept to headlines and supporting copy."]},
-  {ar:["إدارة منصات التواصل","تخطيط وإدارة حضور المنصات، وجدولة المحتوى، وصياغة منشورات تعزز التفاعل والاتساق."],
-   en:["Social Media Management","Planning and managing platform presence, scheduling content, and writing posts that drive engagement and consistency."]},
-  {ar:["الهوية اللفظية","بناء نبرة صوت ورسائل تعريفية تساعد العلامات على الظهور بشخصية لغوية واضحة ومميزة."],
-   en:["Verbal Identity","Building a tone of voice and core messaging that gives brands a clear, distinctive linguistic personality."]},
-  {ar:["المحتوى المؤسسي","كتابة النصوص المؤسسية، الأخبار، الرسائل الداخلية، ومحتوى المناسبات بما يناسب بيئة الشركات والجهات الاحترافية."],
-   en:["Corporate Communication Content","Writing corporate copy, news, internal messaging, and event content suited to professional organizations."]}
-];
+
 
 const portfolio = [
   {icon:"🎤",tagAr:"كتابة عمل وطني",tagEn:"National Songwriting",
@@ -695,16 +761,6 @@ function renderStrip(lang){
   document.getElementById('strip-track').innerHTML = block + " &nbsp; " + block;
 }
 
-function renderServices(lang){
-  const grid = document.getElementById('services-grid');
-  grid.innerHTML = services.map((s,i)=>`
-    <div class="service-card">
-      <div class="service-num">0${i+1}</div>
-      <h3>${lang==='ar'?s.ar[0]:s.en[0]}</h3>
-      <p>${lang==='ar'?s.ar[1]:s.en[1]}</p>
-    </div>`).join('');
-}
-
 function renderPortfolio(lang){
   const grid = document.getElementById('portfolio-grid');
   grid.innerHTML = portfolio.map(p=>`
@@ -746,7 +802,6 @@ function setLang(lang){
   });
 
   renderStrip(lang);
-  renderServices(lang);
   renderPortfolio(lang);
   renderSkills(lang);
   renderAbout(lang);
