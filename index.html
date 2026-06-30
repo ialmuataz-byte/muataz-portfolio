@@ -397,11 +397,14 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   gap:26px;
 }
 .port-card{
+  display:block;
   background:var(--white);
   border:1.5px solid var(--border);
   border-radius:20px;
   overflow:hidden;
   transition:transform .25s ease, box-shadow .25s ease;
+  color:inherit;
+  text-decoration:none;
 }
 .port-card:hover{
   transform:translateY(-6px);
@@ -731,10 +734,10 @@ const stripItems = {
 
 
 const portfolio = [
-  {icon:"🎤",tagAr:"كتابة عمل وطني",tagEn:"National Songwriting",
-   titleAr:"أواصر — عشقناك كالمستحيل",titleEn:"Awasr — Ashaqnak Kal Mustaheel",
-   descAr:"كتابة كلمات عمل وطني احتفاءً باليوم الوطني العماني 2026، حمل عنوان \"عشقناك كالمستحيل\"، وحقق أكثر من 539,715 مشاهدة.",
-   descEn:"Wrote the lyrics for a national work celebrating Oman's National Day 2026 titled \"Ashaqnak Kal Mustaheel,\" reaching more than 539,715 views."},
+  {icon:"🎓",link:"https://drive.google.com/file/d/143sAwHDO4B9g3Wd5g53ovAc7rsZLnEf3/view?usp=sharing",tagAr:"إلقاء شعري",tagEn:"Poetry Recitation",
+   titleAr:"تقديم قصيدة التخرج",titleEn:"Graduation Poem Recitation",
+   descAr:"إلقاء قصيدة التخرج التي كتبها المعتز احتفاءً بالمناسبة، في محطة من محطاته الشعرية البارزة. اضغط لمشاهدة التسجيل الكامل.",
+   descEn:"Delivered the graduation poem he wrote for the occasion, one of his notable poetry milestones. Click to watch the full recording."},
   {icon:"📱",tagAr:"محتوى منصات التواصل",tagEn:"Social Media Content",
    titleAr:"أواصر — محتوى منصات التواصل",titleEn:"Awasr — Social Media Content",
    descAr:"كتابة محتوى منصات التواصل الاجتماعي لشركة أواصر خلال الفترة من 15 سبتمبر 2025 إلى 8 فبراير 2026، مع التركيز على الوضوح والقرب من الجمهور.",
@@ -777,8 +780,11 @@ function renderStrip(lang){
 
 function renderPortfolio(lang){
   const grid = document.getElementById('portfolio-grid');
-  grid.innerHTML = portfolio.map(p=>`
-    <div class="port-card">
+  grid.innerHTML = portfolio.map(p=>{
+    const tag = p.link ? 'a' : 'div';
+    const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
+    return `
+    <${tag} class="port-card" ${linkAttrs}>
       <div class="port-thumb ${p.logos?'port-thumb-logos':''}">
         ${p.logos
           ? p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('')
@@ -789,7 +795,8 @@ function renderPortfolio(lang){
         <h3>${lang==='ar'?p.titleAr:p.titleEn}</h3>
         <p>${lang==='ar'?p.descAr:p.descEn}</p>
       </div>
-    </div>`).join('');
+    </${tag}>`;
+  }).join('');
 }
 
 function renderSkills(lang){
