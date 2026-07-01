@@ -426,6 +426,10 @@ body.edit-mode .edit-bar{display:block;}
   font-family:inherit;
   margin-inline-start:12px;
 }
+.edit-bar button:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
 body.edit-mode header{top:38px;}
 body.edit-mode .hidden-sections-panel{bottom:20px;}
 
@@ -815,6 +819,7 @@ footer{
 
 <div class="edit-bar" id="edit-bar">
   <span id="edit-bar-text">وضع التعديل مفعّل — انقر أي نص لتحريره، أو استخدم أيقونات الصور والحذف</span>
+  <button onclick="undoLastEdit()" id="edit-bar-undo" class="undo-edit-btn" disabled>↩ تراجع</button>
   <button onclick="resetAllData()" id="edit-bar-reset">إعادة تعيين الكل</button>
   <button onclick="doLogout()" id="edit-bar-logout">تسجيل الخروج</button>
   <button onclick="toggleEditMode()" id="edit-bar-close">إنهاء التعديل</button>
@@ -1232,6 +1237,85 @@ function saveContent(partial){
   });
 }
 
+/* ===== UNDO HISTORY (in-memory, per session) =====
+   Before every edit that writes to Firebase, we snapshot the full state
+   (content fields + portfolio + skills). "Undo" pops the last snapshot and
+   writes it back, reconciling the portfolio/skills collections (recreating
+   deleted items, removing added items, reverting edited fields). */
+let undoStack = [];
+let undoInProgress = false;
+const MAX_UNDO = 15;
+
+function snapshotState(){
+  return {
+    texts: JSON.parse(JSON.stringify(state.texts)),
+    aboutAr: state.aboutAr,
+    aboutEn: state.aboutEn,
+    heroImage: state.heroImage,
+    heroImagePos: Object.assign({}, state.heroImagePos || {x:50,y:15}),
+    featuredImage: state.featuredImage,
+    featuredImagePos: Object.assign({}, state.featuredImagePos || {x:50,y:50}),
+    featuredLink: state.featuredLink,
+    hiddenSections: state.hiddenSections.slice(),
+    links: Object.assign({}, state.links),
+    stripItems: {ar:(state.stripItems.ar||[]).slice(), en:(state.stripItems.en||[]).slice()},
+    portfolio: JSON.parse(JSON.stringify(state.portfolio)),
+    skills: JSON.parse(JSON.stringify(state.skills))
+  };
+}
+
+function pushUndoSnapshot(){
+  if(!editMode || !currentUser || undoInProgress) return;
+  undoStack.push(snapshotState());
+  if(undoStack.length > MAX_UNDO) undoStack.shift();
+  updateUndoButton();
+}
+
+function updateUndoButton(){
+  document.querySelectorAll('.undo-edit-btn').forEach(b=>{ b.disabled = undoStack.length===0; });
+}
+
+async function reconcileCollection(colRef, currentArr, snapshotArr){
+  const snapIds = new Set(snapshotArr.map(x=>x.id));
+  const batch = writeBatch(db);
+  currentArr.forEach(item=>{
+    if(!snapIds.has(item.id)) batch.delete(doc(colRef, item.id));
+  });
+  snapshotArr.forEach(item=>{
+    const data = Object.assign({}, item);
+    delete data.id;
+    batch.set(doc(colRef, item.id), data);
+  });
+  await batch.commit();
+}
+
+async function undoLastEdit(){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  if(undoStack.length===0) return;
+  const snap = undoStack.pop();
+  updateUndoButton();
+  undoInProgress = true;
+  try{
+    await setDoc(contentRef, {
+      texts: snap.texts,
+      aboutAr: snap.aboutAr, aboutEn: snap.aboutEn,
+      heroImage: snap.heroImage, heroImagePos: snap.heroImagePos,
+      featuredImage: snap.featuredImage, featuredImagePos: snap.featuredImagePos,
+      featuredLink: snap.featuredLink,
+      hiddenSections: snap.hiddenSections,
+      links: snap.links,
+      stripAr: snap.stripItems.ar, stripEn: snap.stripItems.en
+    }, {merge:true});
+    await reconcileCollection(portfolioCol, state.portfolio, snap.portfolio);
+    await reconcileCollection(skillsCol, state.skills, snap.skills);
+  }catch(err){
+    console.error('Undo failed:', err);
+    alert(currentLang==='ar' ? 'فشل التراجع.' : 'Undo failed.');
+  }finally{
+    undoInProgress = false;
+  }
+}
+
 function resetAllData(){
   const msg = currentLang==='ar' ? "سيتم حذف كل التعديلات المخزّنة في Firebase (النصوص، الصور، الأقسام المحذوفة، الأعمال، المهارات) والعودة للنسخة الأصلية. هل أنت متأكد؟" : "This will erase all edits stored in Firebase (texts, images, deleted sections, portfolio, skills) and restore the original version. Are you sure?";
   if(!confirm(msg)) return;
@@ -1271,6 +1355,9 @@ function resetAllData(){
     const addBatch2 = writeBatch(db);
     defaultSkills.ar.forEach((ar,i)=>addBatch2.set(doc(skillsCol), {ar, en:defaultSkills.en[i], order:i}));
     await addBatch2.commit();
+
+    undoStack = [];
+    updateUndoButton();
   })();
 }
 
@@ -1392,6 +1479,8 @@ function updateEditChrome(){
     ? ('وضع التعديل مفعّل (' + (currentUser ? currentUser.email : '') + ') — التعديلات تُحفظ مباشرة في Firebase')
     : ('Edit mode is on (' + (currentUser ? currentUser.email : '') + ') — changes save straight to Firebase');
   document.getElementById('edit-bar-reset').textContent = currentLang==='ar' ? 'إعادة تعيين الكل' : 'Reset all';
+  document.getElementById('edit-bar-undo').textContent = currentLang==='ar' ? '↩ تراجع' : '↩ Undo';
+  updateUndoButton();
   document.getElementById('edit-bar-logout').textContent = currentLang==='ar' ? 'تسجيل الخروج' : 'Log out';
   document.getElementById('edit-bar-close').textContent = currentLang==='ar' ? 'إنهاء التعديل' : 'Done editing';
   document.getElementById('strip-edit-title').title = currentLang==='ar' ? 'تعديل الشريط' : 'Edit strip';
@@ -1481,6 +1570,8 @@ function doLogout(){
   signOut(auth).then(()=>{
     editMode = false;
     document.body.classList.remove('edit-mode');
+    undoStack = [];
+    updateUndoButton();
     renderAll();
   });
 }
@@ -1494,8 +1585,12 @@ document.addEventListener('focusout', function(e){
   if(el.hasAttribute('data-edit-key')){
     const key = el.getAttribute('data-edit-key');
     const type = el.getAttribute('data-edit-type') || 'text';
+    const newVal = type==='html' ? el.innerHTML : el.textContent;
+    const oldVal = state.texts[key] ? state.texts[key][currentLang] : undefined;
+    if(newVal === oldVal) return;
+    pushUndoSnapshot();
     if(!state.texts[key]) state.texts[key] = {ar:'', en:''};
-    state.texts[key][currentLang] = type==='html' ? el.innerHTML : el.textContent;
+    state.texts[key][currentLang] = newVal;
     saveContent({texts: state.texts});
   } else if(el.hasAttribute('data-pf-id')){
     const id = el.getAttribute('data-pf-id');
@@ -1503,13 +1598,25 @@ document.addEventListener('focusout', function(e){
     const map = {tag:'tag', title:'title', desc:'desc'};
     const suffix = currentLang==='ar' ? 'Ar' : 'En';
     const fieldName = map[field] + suffix;
-    updateDoc(doc(portfolioCol, id), {[fieldName]: el.textContent}).catch(err=>console.error(err));
+    const newVal = el.textContent;
+    const item = state.portfolio.find(p=>p.id===id);
+    if(item && item[fieldName] === newVal) return;
+    pushUndoSnapshot();
+    updateDoc(doc(portfolioCol, id), {[fieldName]: newVal}).catch(err=>console.error(err));
   } else if(el.hasAttribute('data-sk-id')){
     const id = el.getAttribute('data-sk-id');
     const fieldName = currentLang==='ar' ? 'ar' : 'en';
-    updateDoc(doc(skillsCol, id), {[fieldName]: el.textContent}).catch(err=>console.error(err));
+    const newVal = el.textContent;
+    const item = state.skills.find(s=>s.id===id);
+    if(item && item[fieldName] === newVal) return;
+    pushUndoSnapshot();
+    updateDoc(doc(skillsCol, id), {[fieldName]: newVal}).catch(err=>console.error(err));
   } else if(el.hasAttribute('data-about')){
-    if(currentLang==='ar') state.aboutAr = el.innerHTML; else state.aboutEn = el.innerHTML;
+    const newVal = el.innerHTML;
+    const oldVal = currentLang==='ar' ? state.aboutAr : state.aboutEn;
+    if(newVal === oldVal) return;
+    pushUndoSnapshot();
+    if(currentLang==='ar') state.aboutAr = newVal; else state.aboutEn = newVal;
     saveContent({aboutAr: state.aboutAr, aboutEn: state.aboutEn});
   }
 }, true);
@@ -1531,6 +1638,7 @@ document.getElementById('file-input').addEventListener('change', function(e){
       alert(currentLang==='ar' ? 'الصورة كبيرة جدًا. الرجاء استخدام صورة أصغر (أقل من ~700 كيلوبايت).' : 'Image is too large. Please use a smaller image (under ~700KB).');
       pendingImageKey = null; e.target.value=''; return;
     }
+    pushUndoSnapshot();
     if(pendingImageKey === 'hero'){
       state.heroImage = dataUrl;
       saveContent({heroImage: dataUrl});
@@ -1564,6 +1672,7 @@ function attachImageDrag(imgId, wrapEl, posKey, defaultPos){
     const p = point(e);
     startX = p.x; startY = p.y;
     startPos = Object.assign({}, state[posKey] || defaultPos);
+    pushUndoSnapshot();
     draggingKey = posKey;
     img.classList.add('dragging-photo');
     window.addEventListener('pointermove', onMove);
@@ -1614,10 +1723,12 @@ function deleteSection(id){
   const label = SECTION_LABELS[id] ? SECTION_LABELS[id][currentLang] : id;
   const msg = currentLang==='ar' ? `هل تريد حذف قسم "${label}"؟ يمكنك إعادته لاحقًا من لوحة الأقسام المخفية.` : `Delete the "${label}" section? You can restore it later from the hidden sections panel.`;
   if(!confirm(msg)) return;
+  pushUndoSnapshot();
   const updated = state.hiddenSections.includes(id) ? state.hiddenSections : state.hiddenSections.concat([id]);
   saveContent({hiddenSections: updated});
 }
 function restoreSection(id){
+  pushUndoSnapshot();
   const updated = state.hiddenSections.filter(x=>x!==id);
   saveContent({hiddenSections: updated});
 }
@@ -1627,10 +1738,12 @@ function deletePortfolioItem(id){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const msg = currentLang==='ar' ? 'حذف هذا العمل من المعرض؟' : 'Delete this portfolio item?';
   if(!confirm(msg)) return;
+  pushUndoSnapshot();
   deleteDoc(doc(portfolioCol, id)).catch(err=>console.error(err));
 }
 function addPortfolioItem(){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  pushUndoSnapshot();
   const nextOrder = state.portfolio.length ? Math.max(...state.portfolio.map(p=>p.order||0))+1 : 0;
   addDoc(portfolioCol, {
     order: nextOrder,
@@ -1647,15 +1760,18 @@ function editPortfolioLink(id){
   const msg = currentLang==='ar' ? 'أدخل رابط هذا العمل (اتركه فارغًا للإزالة):' : 'Enter the link for this item (leave empty to remove):';
   const url = prompt(msg, current);
   if(url === null) return;
+  pushUndoSnapshot();
   updateDoc(doc(portfolioCol, id), {link: url.trim() || null}).catch(err=>console.error(err));
 }
 
 function deleteSkillItem(id){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  pushUndoSnapshot();
   deleteDoc(doc(skillsCol, id)).catch(err=>console.error(err));
 }
 function addSkillItem(){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  pushUndoSnapshot();
   const nextOrder = state.skills.length ? Math.max(...state.skills.map(s=>s.order||0))+1 : 0;
   addDoc(skillsCol, {ar:"مهارة جديدة", en:"New Skill", order: nextOrder}).catch(err=>console.error(err));
 }
@@ -1667,6 +1783,7 @@ function editStrip(){
   const current = (state.stripItems[currentLang]||[]).join(', ');
   const val = prompt(msg, current);
   if(val === null) return;
+  pushUndoSnapshot();
   const items = val.split(',').map(s=>s.trim()).filter(Boolean);
   const payload = currentLang==='ar' ? {stripAr: items} : {stripEn: items};
   saveContent(payload);
@@ -1676,6 +1793,7 @@ function editFeaturedLink(){
   const msg = currentLang==='ar' ? 'أدخل رابط الفيديو المميز:' : 'Enter the featured video link:';
   const url = prompt(msg, state.featuredLink);
   if(url === null) return;
+  pushUndoSnapshot();
   saveContent({featuredLink: url.trim()});
 }
 function handleSocialClick(e, key){
@@ -1686,6 +1804,7 @@ function handleSocialClick(e, key){
   const msg = currentLang==='ar' ? `أدخل رابط ${labels[key]}:` : `Enter your ${labels[key]} link:`;
   const url = prompt(msg, state.links[key] || '');
   if(url === null) return false;
+  pushUndoSnapshot();
   const updatedLinks = Object.assign({}, state.links, {[key]: url.trim() || '#'});
   saveContent({links: updatedLinks});
   return false;
@@ -1714,6 +1833,7 @@ Object.assign(window, {
   toggleEditMode,
   doLogout,
   resetAllData,
+  undoLastEdit,
   deleteSection,
   restoreSection,
   editStrip,
