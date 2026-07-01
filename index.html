@@ -784,9 +784,14 @@ footer{
 </head>
 <body class="lang-ar">
 
+<div id="load-overlay" style="position:fixed;inset:0;z-index:5000;background:#F3F0E8;display:flex;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;font-weight:700;font-size:15px;color:#1F1F1F;">
+  <span id="load-overlay-text">جارِ تحميل المحتوى...</span>
+</div>
+
 <div class="edit-bar" id="edit-bar">
   <span id="edit-bar-text">وضع التعديل مفعّل — انقر أي نص لتحريره، أو استخدم أيقونات الصور والحذف</span>
   <button onclick="resetAllData()" id="edit-bar-reset">إعادة تعيين الكل</button>
+  <button onclick="doLogout()" id="edit-bar-logout">تسجيل الخروج</button>
   <button onclick="toggleEditMode()" id="edit-bar-close">إنهاء التعديل</button>
 </div>
 
@@ -967,35 +972,58 @@ footer{
 
 <input type="file" id="file-input" accept="image/*" style="display:none;">
 
+<!-- ============ FIREBASE SDK (compat / script-tag method, no npm) ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script>
-/* ===== DEFAULT DATA ===== */
+/* =========================================================================
+   FIREBASE CONFIG — project: my-portfolio-40700
+   ========================================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCIWfzJyBmnXS0vlD_b-pXRLIkVW2Qn2A8",
+  authDomain: "my-portfolio-40700.firebaseapp.com",
+  projectId: "my-portfolio-40700",
+  storageBucket: "my-portfolio-40700.firebasestorage.app",
+  messagingSenderId: "1055600007192",
+  appId: "1:1055600007192:web:ee4a70a9cb0734eba4cb6d",
+  measurementId: "G-E17H77RK1N"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+</script>
+
+<script>
+/* ===== DEFAULT DATA (used only to seed Firestore the very first time) ===== */
 const defaultStripItems = {
   ar:["كتابة المحتوى","بناء الاستراتيجيات","إدارة المنصات","الحملات الإبداعية","الهوية اللفظية"],
   en:["Content Writing","Strategy Building","Social Media Management","Creative Campaigns","Verbal Identity"]
 };
 
 const defaultPortfolio = [
-  {icon:"🎓",link:"https://drive.google.com/file/d/143sAwHDO4B9g3Wd5g53ovAc7rsZLnEf3/view?usp=sharing",tagAr:"إلقاء شعري",tagEn:"Poetry Recitation",
+  {order:0,icon:"🎓",link:"https://drive.google.com/file/d/143sAwHDO4B9g3Wd5g53ovAc7rsZLnEf3/view?usp=sharing",tagAr:"إلقاء شعري",tagEn:"Poetry Recitation",
    titleAr:"تقديم قصيدة التخرج",titleEn:"Graduation Poem Recitation",
    descAr:"إلقاء قصيدة التخرج التي كتبها المعتز احتفاءً بالمناسبة، في محطة من محطاته الشعرية البارزة. اضغط لمشاهدة التسجيل الكامل.",
    descEn:"Delivered the graduation poem he wrote for the occasion, one of his notable poetry milestones. Click to watch the full recording."},
-  {icon:"📱",tagAr:"محتوى منصات التواصل",tagEn:"Social Media Content",
+  {order:1,icon:"📱",tagAr:"محتوى منصات التواصل",tagEn:"Social Media Content",
    titleAr:"أواصر — محتوى منصات التواصل",titleEn:"Awasr — Social Media Content",
    descAr:"كتابة محتوى منصات التواصل الاجتماعي لشركة أواصر خلال الفترة من 15 سبتمبر 2025 إلى 8 فبراير 2026، مع التركيز على الوضوح والقرب من الجمهور.",
    descEn:"Created social media content for Awasr between September 15, 2025 and February 8, 2026, focusing on clarity, audience relevance, and brand voice consistency."},
-  {icon:"🏢",logos:["asaas-logo.png","araya-logo.png","ssa-logo.png"],tagAr:"إدارة المحتوى والمنصات",tagEn:"Content & Platform Management",
+  {order:2,icon:"🏢",logos:["asaas-logo.png","araya-logo.png","ssa-logo.png"],tagAr:"إدارة المحتوى والمنصات",tagEn:"Content & Platform Management",
    titleAr:"أساس — إدارة الحسابات والمشاريع",titleEn:"ASAAS — Accounts & Projects Management",
    descAr:"تأسيس وإدارة حسابات العمل في شركة أساس والمشاريع التابعة لها: حساب أساس منذ 2018، وسوق شاطئ الحافة منذ 2023، ومجمع الراية بين 2021 و2023.",
    descEn:"Established and managed the digital presence of ASAAS and its projects: ASAAS since 2018, Souq Shati Al Hafa since 2023, and A'Raya Complex from 2021 to 2023."},
-  {icon:"🎉",tagAr:"محتوى وتقديم فعاليات",tagEn:"Event Content & Hosting",
+  {order:3,icon:"🎉",tagAr:"محتوى وتقديم فعاليات",tagEn:"Event Content & Hosting",
    titleAr:"احتفالية اليوم الوطني",titleEn:"National Day Celebration",
    descAr:"تقديم وإدارة احتفالية اليوم الوطني وتجمع الموظفين، في تجربة جمعت بين الحضور، النص، وإدارة أجواء المناسبة.",
    descEn:"Hosted and managed a National Day staff gathering, combining content, stage presence, and event atmosphere management."},
-  {icon:"✍️",tagAr:"تعاون إبداعي",tagEn:"Creative Writing Collaboration",
+  {order:4,icon:"✍️",tagAr:"تعاون إبداعي",tagEn:"Creative Writing Collaboration",
    titleAr:"مترفة الغيمات",titleEn:"Mutrafat Al Ghaymat",
    descAr:"التعاون مع المنشد والمخرج جلال الخويطري في كتابة العمل الفني \"مترفة الغيمات\".",
    descEn:"Collaborated with vocalist and director Jalal Al Khuwaitri on the creative writing of \"Mutrafat Al Ghaymat.\""},
-  {icon:"📜",tagAr:"شِعر وحضور جماهيري",tagEn:"Poetry & Public Presence",
+  {order:5,icon:"📜",tagAr:"شِعر وحضور جماهيري",tagEn:"Poetry & Public Presence",
    titleAr:"المسيرة الشعرية",titleEn:"Poetry Journey",
    descAr:"محطات شعرية بارزة، منها إلقاء قصيدة التخرج، والدعوة عام 2016 إلى لبنان لحضور صالون ميس الأدبي مع مجموعة من الشعراء العرب.",
    descEn:"Key poetry milestones, including delivering a graduation poem and being invited in 2016 to Lebanon to attend Salon Mays Literary Gathering with Arab poets."}
@@ -1023,66 +1051,192 @@ const SECTION_LABELS = {
   cta:{ar:"دعوة التواصل",en:"Call To Action"}
 };
 
-const STORAGE_KEY = "muataz_site_state_v1";
+/* =========================================================================
+   FIRESTORE STRUCTURE
+   - site/content        : one document holding texts, about, images, hero
+                            image, featured video link, hidden sections,
+                            social links, and the specialization strip.
+   - portfolio/{docId}    : one document per portfolio card.
+   - skills/{docId}       : one document per skill pill.
+   ========================================================================= */
+const contentRef = db.collection('site').doc('content');
+const portfolioCol = db.collection('portfolio');
+const skillsCol = db.collection('skills');
 
-/* ===== STATE ===== */
-let state = null;
+/* ===== STATE (mirrors Firestore, kept in memory for fast rendering) ===== */
+let state = {
+  texts: {},
+  aboutAr: defaultAboutAr,
+  aboutEn: defaultAboutEn,
+  heroImage: null,
+  featuredImage: null,
+  featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
+  hiddenSections: [],
+  links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
+  stripItems: JSON.parse(JSON.stringify(defaultStripItems)),
+  portfolio: [],
+  skills: []
+};
 let currentLang = "ar";
 let editMode = false;
 let pendingImageKey = null;
+let currentUser = null;
+let hasLoadedOnce = false;
+let contentLoaded = false, portfolioLoaded = false, skillsLoaded = false;
 
-function freshState(){
-  return {
-    portfolio: JSON.parse(JSON.stringify(defaultPortfolio)),
-    skills: JSON.parse(JSON.stringify(defaultSkills)),
-    stripItems: JSON.parse(JSON.stringify(defaultStripItems)),
-    aboutAr: defaultAboutAr,
-    aboutEn: defaultAboutEn,
-    heroImage: null,
-    featuredImage: null,
-    featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
-    texts: {},
-    hiddenSections: [],
-    links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"}
-  };
+/* ===== FIRST-RUN SEEDING ===== */
+async function seedIfEmpty(){
+  const contentSnap = await contentRef.get();
+  if(!contentSnap.exists){
+    const seedTexts = {};
+    document.querySelectorAll('[data-edit-key]').forEach(el=>{
+      const key = el.getAttribute('data-edit-key');
+      const type = el.getAttribute('data-edit-type') || 'text';
+      seedTexts[key] = {
+        ar: type==='html' ? el.getAttribute('data-ar-html') : el.getAttribute('data-ar'),
+        en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
+      };
+    });
+    await contentRef.set({
+      texts: seedTexts,
+      aboutAr: defaultAboutAr,
+      aboutEn: defaultAboutEn,
+      heroImage: null,
+      featuredImage: null,
+      featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
+      hiddenSections: [],
+      links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
+      stripAr: defaultStripItems.ar,
+      stripEn: defaultStripItems.en
+    });
+  }
+
+  const portfolioSnap = await portfolioCol.limit(1).get();
+  if(portfolioSnap.empty){
+    const batch = db.batch();
+    defaultPortfolio.forEach(p=>{
+      const ref = portfolioCol.doc();
+      batch.set(ref, p);
+    });
+    await batch.commit();
+  }
+
+  const skillsSnap = await skillsCol.limit(1).get();
+  if(skillsSnap.empty){
+    const batch = db.batch();
+    defaultSkills.ar.forEach((ar,i)=>{
+      const ref = skillsCol.doc();
+      batch.set(ref, {ar, en: defaultSkills.en[i], order:i});
+    });
+    await batch.commit();
+  }
 }
 
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      const saved = JSON.parse(raw);
-      return Object.assign(freshState(), saved);
+function maybeHideLoadOverlay(){
+  if(contentLoaded && portfolioLoaded && skillsLoaded && !hasLoadedOnce){
+    hasLoadedOnce = true;
+    const overlay = document.getElementById('load-overlay');
+    if(overlay) overlay.style.display = 'none';
+  }
+}
+
+/* ===== REALTIME LISTENERS ===== */
+function attachListeners(){
+  contentRef.onSnapshot(snap=>{
+    if(snap.exists){
+      const d = snap.data();
+      state.texts = d.texts || {};
+      state.aboutAr = d.aboutAr || defaultAboutAr;
+      state.aboutEn = d.aboutEn || defaultAboutEn;
+      state.heroImage = d.heroImage || null;
+      state.featuredImage = d.featuredImage || null;
+      state.featuredLink = d.featuredLink || state.featuredLink;
+      state.hiddenSections = d.hiddenSections || [];
+      state.links = d.links || state.links;
+      state.stripItems = {ar: d.stripAr || defaultStripItems.ar, en: d.stripEn || defaultStripItems.en};
     }
-  }catch(e){ console.warn("state load failed", e); }
-  return freshState();
+    contentLoaded = true;
+    renderAll();
+    maybeHideLoadOverlay();
+  }, err=>{
+    console.error('Firestore content listener error:', err);
+    alert(currentLang==='ar' ? 'تعذّر الاتصال بقاعدة البيانات. تحقق من إعداد Firebase الخاص بك.' : 'Could not connect to the database. Check your Firebase setup.');
+  });
+
+  portfolioCol.orderBy('order').onSnapshot(snap=>{
+    state.portfolio = snap.docs.map(doc=>Object.assign({id:doc.id}, doc.data()));
+    portfolioLoaded = true;
+    renderPortfolio(currentLang);
+    maybeHideLoadOverlay();
+  }, err=>console.error('Firestore portfolio listener error:', err));
+
+  skillsCol.orderBy('order').onSnapshot(snap=>{
+    state.skills = snap.docs.map(doc=>Object.assign({id:doc.id}, doc.data()));
+    skillsLoaded = true;
+    renderSkills(currentLang);
+    maybeHideLoadOverlay();
+  }, err=>console.error('Firestore skills listener error:', err));
 }
 
-function saveState(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch(e){ console.warn("state save failed", e); }
+/* ===== WRITE HELPERS ===== */
+function saveContent(partial){
+  return contentRef.set(partial, {merge:true}).catch(err=>{
+    console.error('Save failed:', err);
+    alert(currentLang==='ar' ? 'فشل الحفظ. تأكد أنك مسجّل الدخول كمشرف.' : 'Save failed. Make sure you are signed in as admin.');
+  });
 }
 
 function resetAllData(){
-  const msg = currentLang==='ar' ? "سيتم حذف كل التعديلات (النصوص، الصور، الأقسام المحذوفة) والعودة للنسخة الأصلية. هل أنت متأكد؟" : "This will erase all edits (texts, images, deleted sections) and restore the original version. Are you sure?";
+  const msg = currentLang==='ar' ? "سيتم حذف كل التعديلات المخزّنة في Firebase (النصوص، الصور، الأقسام المحذوفة، الأعمال، المهارات) والعودة للنسخة الأصلية. هل أنت متأكد؟" : "This will erase all edits stored in Firebase (texts, images, deleted sections, portfolio, skills) and restore the original version. Are you sure?";
   if(!confirm(msg)) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = freshState();
-  applyHiddenSections();
-  renderAll();
-  renderHiddenPanel();
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+
+  (async ()=>{
+    const seedTexts = {};
+    document.querySelectorAll('[data-edit-key]').forEach(el=>{
+      const key = el.getAttribute('data-edit-key');
+      const type = el.getAttribute('data-edit-type') || 'text';
+      seedTexts[key] = {
+        ar: type==='html' ? el.getAttribute('data-ar-html') : el.getAttribute('data-ar'),
+        en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
+      };
+    });
+    await contentRef.set({
+      texts: seedTexts, aboutAr: defaultAboutAr, aboutEn: defaultAboutEn,
+      heroImage: null, featuredImage: null,
+      featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
+      hiddenSections: [], links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
+      stripAr: defaultStripItems.ar, stripEn: defaultStripItems.en
+    });
+
+    const oldPortfolio = await portfolioCol.get();
+    const delBatch1 = db.batch();
+    oldPortfolio.docs.forEach(d=>delBatch1.delete(d.ref));
+    await delBatch1.commit();
+    const addBatch1 = db.batch();
+    defaultPortfolio.forEach(p=>addBatch1.set(portfolioCol.doc(), p));
+    await addBatch1.commit();
+
+    const oldSkills = await skillsCol.get();
+    const delBatch2 = db.batch();
+    oldSkills.docs.forEach(d=>delBatch2.delete(d.ref));
+    await delBatch2.commit();
+    const addBatch2 = db.batch();
+    defaultSkills.ar.forEach((ar,i)=>addBatch2.set(skillsCol.doc(), {ar, en:defaultSkills.en[i], order:i}));
+    await addBatch2.commit();
+  })();
 }
 
 /* ===== RENDER ===== */
 function renderStrip(lang){
-  const items = state.stripItems[lang];
+  const items = state.stripItems[lang] || [];
   const block = items.map(i=>`<span>✦</span>${i}`).join(" &nbsp; ");
   document.getElementById('strip-track').innerHTML = block + " &nbsp; " + block;
 }
 
 function renderPortfolio(lang){
   const grid = document.getElementById('portfolio-grid');
-  grid.innerHTML = state.portfolio.map((p,i)=>{
+  grid.innerHTML = state.portfolio.map((p)=>{
     const tag = p.link ? 'a' : 'div';
     const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
     let thumbInner;
@@ -1095,16 +1249,16 @@ function renderPortfolio(lang){
     }
     return `
     <${tag} class="port-card" ${linkAttrs}>
-      <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem(${i})" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
+      <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem('${p.id}')" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
       <div class="port-thumb ${p.logos&&!p.image?'port-thumb-logos':''}">
         ${thumbInner}
-        <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${i}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
+        <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${p.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
       </div>
       <div class="port-body">
-        <span class="port-tag" contenteditable="${editMode}" data-pf-idx="${i}" data-pf-field="tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
-        <h3 contenteditable="${editMode}" data-pf-idx="${i}" data-pf-field="title">${lang==='ar'?p.titleAr:p.titleEn}</h3>
-        <p contenteditable="${editMode}" data-pf-idx="${i}" data-pf-field="desc">${lang==='ar'?p.descAr:p.descEn}</p>
-        <button class="link-edit-btn" onclick="event.preventDefault();event.stopPropagation();editPortfolioLink(${i})">🔗 ${currentLang==='ar'?(p.link?'تعديل الرابط':'إضافة رابط'):(p.link?'Edit link':'Add link')}</button>
+        <span class="port-tag" contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
+        <h3 contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="title">${lang==='ar'?p.titleAr:p.titleEn}</h3>
+        <p contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="desc">${lang==='ar'?p.descAr:p.descEn}</p>
+        <button class="link-edit-btn" onclick="event.preventDefault();event.stopPropagation();editPortfolioLink('${p.id}')">🔗 ${currentLang==='ar'?(p.link?'تعديل الرابط':'إضافة رابط'):(p.link?'Edit link':'Add link')}</button>
       </div>
     </${tag}>`;
   }).join('') + `<button class="add-card-btn" onclick="addPortfolioItem()">+ ${currentLang==='ar'?'إضافة عمل جديد':'Add new work'}</button>`;
@@ -1112,31 +1266,33 @@ function renderPortfolio(lang){
 
 function renderSkills(lang){
   const grid = document.getElementById('skills-grid');
-  grid.innerHTML = state.skills[lang].map((s,i)=>`
+  grid.innerHTML = state.skills.map((s)=>`
     <div class="skill-pill">
-      <button class="card-delete-btn" onclick="deleteSkillItem(${i})" title="${currentLang==='ar'?'حذف':'Delete'}">✕</button>
-      <span contenteditable="${editMode}" data-sk-idx="${i}">${s}</span>
+      <button class="card-delete-btn" onclick="deleteSkillItem('${s.id}')" title="${currentLang==='ar'?'حذف':'Delete'}">✕</button>
+      <span contenteditable="${editMode}" data-sk-id="${s.id}">${lang==='ar'?s.ar:s.en}</span>
     </div>`).join('') + `<button class="add-pill-btn" onclick="addSkillItem()">+ ${currentLang==='ar'?'إضافة':'Add'}</button>`;
 }
 
 function renderAbout(lang){
   const el = document.getElementById('about-text');
-  el.innerHTML = lang==='ar' ? state.aboutAr : state.aboutEn;
+  if(document.activeElement !== el){
+    el.innerHTML = lang==='ar' ? state.aboutAr : state.aboutEn;
+  }
   el.setAttribute('contenteditable', editMode ? 'true':'false');
   el.setAttribute('data-about','1');
 }
 
 function applyStaticTexts(lang){
   document.querySelectorAll('[data-edit-key]').forEach(el=>{
+    if(document.activeElement === el) { el.setAttribute('contenteditable', editMode ? 'true':'false'); return; }
     const key = el.getAttribute('data-edit-key');
     const type = el.getAttribute('data-edit-type') || 'text';
-    if(!state.texts[key]){
-      state.texts[key] = {
-        ar: type==='html' ? el.getAttribute('data-ar-html') : el.getAttribute('data-ar'),
-        en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
-      };
-    }
-    const val = state.texts[key][lang];
+    const fallback = {
+      ar: type==='html' ? el.getAttribute('data-ar-html') : el.getAttribute('data-ar'),
+      en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
+    };
+    const source = (state.texts && state.texts[key]) ? state.texts[key] : fallback;
+    const val = source[lang];
     if(val !== undefined && val !== null){
       if(type==='html') el.innerHTML = val; else el.textContent = val;
     }
@@ -1180,13 +1336,15 @@ function updateEditChrome(){
   document.getElementById('edit-toggle-label').textContent = currentLang==='ar' ? 'تعديل الموقع' : 'Edit Site';
   document.getElementById('edit-toggle-label-mobile').textContent = currentLang==='ar' ? 'تعديل الموقع' : 'Edit Site';
   document.getElementById('edit-bar-text').textContent = currentLang==='ar'
-    ? 'وضع التعديل مفعّل — انقر أي نص لتحريره، أو استخدم أيقونات الصور والحذف'
-    : 'Edit mode is on — click any text to edit it, or use the image and delete icons';
+    ? ('وضع التعديل مفعّل (' + (currentUser ? currentUser.email : '') + ') — التعديلات تُحفظ مباشرة في Firebase')
+    : ('Edit mode is on (' + (currentUser ? currentUser.email : '') + ') — changes save straight to Firebase');
   document.getElementById('edit-bar-reset').textContent = currentLang==='ar' ? 'إعادة تعيين الكل' : 'Reset all';
+  document.getElementById('edit-bar-logout').textContent = currentLang==='ar' ? 'تسجيل الخروج' : 'Log out';
   document.getElementById('edit-bar-close').textContent = currentLang==='ar' ? 'إنهاء التعديل' : 'Done editing';
   document.getElementById('strip-edit-title').title = currentLang==='ar' ? 'تعديل الشريط' : 'Edit strip';
   document.getElementById('featured-link-label').textContent = currentLang==='ar' ? 'تعديل رابط الفيديو' : 'Edit video link';
   document.getElementById('hero-photo-badge-title').title = currentLang==='ar' ? 'تغيير الصورة' : 'Change photo';
+  document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'جارِ تحميل المحتوى...' : 'Loading content...';
   Object.keys(SECTION_LABELS).forEach(id=>{
     const btn = document.getElementById('del-'+id);
     if(btn) btn.title = currentLang==='ar' ? ('حذف: '+SECTION_LABELS[id].ar) : ('Delete: '+SECTION_LABELS[id].en);
@@ -1219,45 +1377,92 @@ function setLang(lang){
   document.getElementById('mnav').classList.remove('open');
 }
 
-/* ===== EDIT MODE ===== */
+/* ===== AUTH / EDIT MODE (public = read-only, admin = signs in to edit) ===== */
+auth.onAuthStateChanged(user=>{
+  currentUser = user;
+  if(!user && editMode){
+    editMode = false;
+    document.body.classList.remove('edit-mode');
+    renderAll();
+  }
+  updateEditChrome();
+});
+
 function toggleEditMode(){
-  editMode = !editMode;
-  document.body.classList.toggle('edit-mode', editMode);
-  renderAll();
-  if(editMode) window.scrollTo({top:0, behavior:'smooth'});
+  if(!editMode){
+    if(!currentUser){
+      showLoginPrompt();
+      return;
+    }
+    editMode = true;
+    document.body.classList.add('edit-mode');
+    renderAll();
+    window.scrollTo({top:0, behavior:'smooth'});
+  } else {
+    editMode = false;
+    document.body.classList.remove('edit-mode');
+    renderAll();
+  }
 }
 
-/* ===== TEXT EDIT SAVE (delegated) ===== */
+function showLoginPrompt(){
+  const email = prompt(currentLang==='ar' ? 'البريد الإلكتروني للمشرف:' : 'Admin email:');
+  if(!email) return;
+  const password = prompt(currentLang==='ar' ? 'كلمة المرور:' : 'Password:');
+  if(!password) return;
+  auth.signInWithEmailAndPassword(email.trim(), password)
+    .then(()=>{
+      editMode = true;
+      document.body.classList.add('edit-mode');
+      renderAll();
+      window.scrollTo({top:0, behavior:'smooth'});
+    })
+    .catch(err=>{
+      alert(currentLang==='ar' ? 'فشل تسجيل الدخول: '+err.message : 'Login failed: '+err.message);
+    });
+}
+
+function doLogout(){
+  auth.signOut().then(()=>{
+    editMode = false;
+    document.body.classList.remove('edit-mode');
+    renderAll();
+  });
+}
+
+/* ===== TEXT EDIT SAVE (delegated, writes to Firestore) ===== */
 document.addEventListener('focusout', function(e){
   const el = e.target;
   if(!el || el.getAttribute('contenteditable') !== 'true') return;
+  if(!currentUser) return;
 
   if(el.hasAttribute('data-edit-key')){
     const key = el.getAttribute('data-edit-key');
     const type = el.getAttribute('data-edit-type') || 'text';
     if(!state.texts[key]) state.texts[key] = {ar:'', en:''};
     state.texts[key][currentLang] = type==='html' ? el.innerHTML : el.textContent;
-    saveState();
-    applyStaticTexts(currentLang);
-  } else if(el.hasAttribute('data-pf-idx')){
-    const idx = parseInt(el.getAttribute('data-pf-idx'),10);
+    saveContent({texts: state.texts});
+  } else if(el.hasAttribute('data-pf-id')){
+    const id = el.getAttribute('data-pf-id');
     const field = el.getAttribute('data-pf-field');
     const map = {tag:'tag', title:'title', desc:'desc'};
     const suffix = currentLang==='ar' ? 'Ar' : 'En';
-    state.portfolio[idx][map[field]+suffix] = el.textContent;
-    saveState();
-  } else if(el.hasAttribute('data-sk-idx')){
-    const idx = parseInt(el.getAttribute('data-sk-idx'),10);
-    state.skills[currentLang][idx] = el.textContent;
-    saveState();
+    const fieldName = map[field] + suffix;
+    portfolioCol.doc(id).update({[fieldName]: el.textContent}).catch(err=>console.error(err));
+  } else if(el.hasAttribute('data-sk-id')){
+    const id = el.getAttribute('data-sk-id');
+    const fieldName = currentLang==='ar' ? 'ar' : 'en';
+    skillsCol.doc(id).update({[fieldName]: el.textContent}).catch(err=>console.error(err));
   } else if(el.hasAttribute('data-about')){
     if(currentLang==='ar') state.aboutAr = el.innerHTML; else state.aboutEn = el.innerHTML;
-    saveState();
+    saveContent({aboutAr: state.aboutAr, aboutEn: state.aboutEn});
   }
 }, true);
 
-/* ===== IMAGES ===== */
+/* ===== IMAGES (stored as base64 data URLs — keep photos reasonably small,
+   Firestore documents are capped at 1MB) ===== */
 function changeImage(key){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   pendingImageKey = key;
   document.getElementById('file-input').click();
 }
@@ -1267,16 +1472,20 @@ document.getElementById('file-input').addEventListener('change', function(e){
   const reader = new FileReader();
   reader.onload = function(ev){
     const dataUrl = ev.target.result;
+    if(dataUrl.length > 900000){
+      alert(currentLang==='ar' ? 'الصورة كبيرة جدًا. الرجاء استخدام صورة أصغر (أقل من ~700 كيلوبايت).' : 'Image is too large. Please use a smaller image (under ~700KB).');
+      pendingImageKey = null; e.target.value=''; return;
+    }
     if(pendingImageKey === 'hero'){
       state.heroImage = dataUrl;
+      saveContent({heroImage: dataUrl});
     } else if(pendingImageKey === 'featured'){
       state.featuredImage = dataUrl;
+      saveContent({featuredImage: dataUrl});
     } else if(pendingImageKey.startsWith('portfolio-')){
-      const idx = parseInt(pendingImageKey.split('-')[1],10);
-      state.portfolio[idx].image = dataUrl;
+      const id = pendingImageKey.slice('portfolio-'.length);
+      portfolioCol.doc(id).update({image: dataUrl}).catch(err=>console.error(err));
     }
-    saveState();
-    renderAll();
     pendingImageKey = null;
     e.target.value = '';
   };
@@ -1285,90 +1494,84 @@ document.getElementById('file-input').addEventListener('change', function(e){
 
 /* ===== SECTIONS ===== */
 function deleteSection(id){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const label = SECTION_LABELS[id] ? SECTION_LABELS[id][currentLang] : id;
   const msg = currentLang==='ar' ? `هل تريد حذف قسم "${label}"؟ يمكنك إعادته لاحقًا من لوحة الأقسام المخفية.` : `Delete the "${label}" section? You can restore it later from the hidden sections panel.`;
   if(!confirm(msg)) return;
-  if(!state.hiddenSections.includes(id)) state.hiddenSections.push(id);
-  saveState();
-  applyHiddenSections();
-  renderHiddenPanel();
+  const updated = state.hiddenSections.includes(id) ? state.hiddenSections : state.hiddenSections.concat([id]);
+  saveContent({hiddenSections: updated});
 }
 function restoreSection(id){
-  state.hiddenSections = state.hiddenSections.filter(x=>x!==id);
-  saveState();
-  applyHiddenSections();
-  renderHiddenPanel();
+  const updated = state.hiddenSections.filter(x=>x!==id);
+  saveContent({hiddenSections: updated});
 }
 
 /* ===== PORTFOLIO / SKILLS ADD & DELETE ===== */
-function deletePortfolioItem(i){
+function deletePortfolioItem(id){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const msg = currentLang==='ar' ? 'حذف هذا العمل من المعرض؟' : 'Delete this portfolio item?';
   if(!confirm(msg)) return;
-  state.portfolio.splice(i,1);
-  saveState();
-  renderPortfolio(currentLang);
+  portfolioCol.doc(id).delete().catch(err=>console.error(err));
 }
 function addPortfolioItem(){
-  state.portfolio.push({
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const nextOrder = state.portfolio.length ? Math.max(...state.portfolio.map(p=>p.order||0))+1 : 0;
+  portfolioCol.add({
+    order: nextOrder,
     icon:"✨",
     tagAr:"وسم جديد", tagEn:"New Tag",
     titleAr:"عنوان عمل جديد", titleEn:"New Work Title",
     descAr:"وصف مختصر لهذا العمل. انقر لتعديله.", descEn:"Short description of this work. Click to edit."
-  });
-  saveState();
-  renderPortfolio(currentLang);
+  }).catch(err=>console.error(err));
 }
-function editPortfolioLink(i){
-  const current = state.portfolio[i].link || '';
+function editPortfolioLink(id){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const item = state.portfolio.find(p=>p.id===id);
+  const current = (item && item.link) || '';
   const msg = currentLang==='ar' ? 'أدخل رابط هذا العمل (اتركه فارغًا للإزالة):' : 'Enter the link for this item (leave empty to remove):';
   const url = prompt(msg, current);
   if(url === null) return;
-  state.portfolio[i].link = url.trim() || null;
-  saveState();
-  renderPortfolio(currentLang);
+  portfolioCol.doc(id).update({link: url.trim() || null}).catch(err=>console.error(err));
 }
 
-function deleteSkillItem(i){
-  state.skills.ar.splice(i,1);
-  state.skills.en.splice(i,1);
-  saveState();
-  renderSkills(currentLang);
+function deleteSkillItem(id){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  skillsCol.doc(id).delete().catch(err=>console.error(err));
 }
 function addSkillItem(){
-  state.skills.ar.push("مهارة جديدة");
-  state.skills.en.push("New Skill");
-  saveState();
-  renderSkills(currentLang);
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const nextOrder = state.skills.length ? Math.max(...state.skills.map(s=>s.order||0))+1 : 0;
+  skillsCol.add({ar:"مهارة جديدة", en:"New Skill", order: nextOrder}).catch(err=>console.error(err));
 }
 
 /* ===== STRIP / LINKS ===== */
 function editStrip(){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const msg = currentLang==='ar' ? 'أدخل عناصر الشريط مفصولة بفاصلة:' : 'Enter strip items separated by commas:';
-  const current = state.stripItems[currentLang].join(', ');
+  const current = (state.stripItems[currentLang]||[]).join(', ');
   const val = prompt(msg, current);
   if(val === null) return;
-  state.stripItems[currentLang] = val.split(',').map(s=>s.trim()).filter(Boolean);
-  saveState();
-  renderStrip(currentLang);
+  const items = val.split(',').map(s=>s.trim()).filter(Boolean);
+  const payload = currentLang==='ar' ? {stripAr: items} : {stripEn: items};
+  saveContent(payload);
 }
 function editFeaturedLink(){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const msg = currentLang==='ar' ? 'أدخل رابط الفيديو المميز:' : 'Enter the featured video link:';
   const url = prompt(msg, state.featuredLink);
   if(url === null) return;
-  state.featuredLink = url.trim();
-  saveState();
-  applyImages();
+  saveContent({featuredLink: url.trim()});
 }
 function handleSocialClick(e, key){
   if(!editMode) return true;
   e.preventDefault();
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return false; }
   const labels = {li:'LinkedIn', ig:'Instagram', wa:'WhatsApp'};
   const msg = currentLang==='ar' ? `أدخل رابط ${labels[key]}:` : `Enter your ${labels[key]} link:`;
   const url = prompt(msg, state.links[key] || '');
   if(url === null) return false;
-  state.links[key] = url.trim() || '#';
-  saveState();
-  applyImages();
+  const updatedLinks = Object.assign({}, state.links, {[key]: url.trim() || '#'});
+  saveContent({links: updatedLinks});
   return false;
 }
 
@@ -1385,8 +1588,15 @@ document.querySelectorAll('.mobile-nav a').forEach(a=>{
 });
 
 /* ===== INIT ===== */
-state = loadState();
-setLang('ar');
+(async function init(){
+  try{
+    await seedIfEmpty();
+  }catch(e){
+    console.error('Seeding failed (this is expected until you replace firebaseConfig and set Firestore rules):', e);
+  }
+  attachListeners();
+  setLang('ar');
+})();
 </script>
 </body>
 </html>
