@@ -754,10 +754,35 @@ body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
 }
 .portfolio-subsection .portfolio-grid{margin-bottom:0;}
 
-/* ---- Asaas image carousel (single large auto-rotating stage) ---- */
+/* ---- Image carousels: each section can hold several named carousels (topics) ---- */
+.carousels-list{display:flex;flex-direction:column;gap:20px;}
+.carousel-block{
+  position:relative;
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:20px 20px 24px;
+}
+.carousel-block-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:4px;
+}
+.carousel-title{
+  font-size:15.5px;
+  font-weight:900;
+  border-radius:6px;
+  padding:2px 4px;
+}
+.carousel-del-btn{
+  position:static;
+  width:26px;height:26px;
+}
 .gallery-wrap{
   position:relative;
-  margin:26px auto 0;
+  margin:14px auto 0;
   max-width:680px;
 }
 .gallery-stage{
@@ -1073,43 +1098,19 @@ footer{
   <div class="portfolio-subsection">
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-freelance" data-ar="أعمال مستقلة" data-en="Freelance Work">أعمال مستقلة</h3>
     <div class="portfolio-grid" id="portfolio-grid-freelance" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'freelance')"></div>
-    <div class="gallery-wrap" id="freelance-gallery-wrap">
-      <div class="gallery-stage" id="freelance-stage">
-        <button class="carousel-arrow carousel-prev" onclick="carouselMove('freelance',-1)" title="السابق" id="carousel-prev-freelance">‹</button>
-        <button class="carousel-arrow carousel-next" onclick="carouselMove('freelance',1)" title="التالي" id="carousel-next-freelance">›</button>
-      </div>
-      <p class="gallery-caption" id="freelance-gallery-caption"></p>
-      <div class="carousel-dots" id="freelance-carousel-dots"></div>
-      <button class="gallery-add-btn" onclick="addGalleryItem('freelance')" id="freelance-gallery-add">+ إضافة صورة</button>
-    </div>
+    <div class="carousels-list" id="freelance-carousels-list"></div>
   </div>
 
   <div class="portfolio-subsection">
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-asaas" data-ar="أساس" data-en="ASAAS">أساس</h3>
     <div class="portfolio-grid" id="portfolio-grid-asaas" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'asaas')"></div>
-    <div class="gallery-wrap" id="asaas-gallery-wrap">
-      <div class="gallery-stage" id="asaas-stage">
-        <button class="carousel-arrow carousel-prev" onclick="carouselMove('asaas',-1)" title="السابق" id="carousel-prev-asaas">‹</button>
-        <button class="carousel-arrow carousel-next" onclick="carouselMove('asaas',1)" title="التالي" id="carousel-next-asaas">›</button>
-      </div>
-      <p class="gallery-caption" id="asaas-gallery-caption"></p>
-      <div class="carousel-dots" id="asaas-carousel-dots"></div>
-      <button class="gallery-add-btn" onclick="addGalleryItem('asaas')" id="asaas-gallery-add">+ إضافة صورة</button>
-    </div>
+    <div class="carousels-list" id="asaas-carousels-list"></div>
   </div>
 
   <div class="portfolio-subsection">
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-participation" data-ar="مشاركات" data-en="Participations">مشاركات</h3>
     <div class="portfolio-grid" id="portfolio-grid-participation" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'participation')"></div>
-    <div class="gallery-wrap" id="participation-gallery-wrap">
-      <div class="gallery-stage" id="participation-stage">
-        <button class="carousel-arrow carousel-prev" onclick="carouselMove('participation',-1)" title="السابق" id="carousel-prev-participation">‹</button>
-        <button class="carousel-arrow carousel-next" onclick="carouselMove('participation',1)" title="التالي" id="carousel-next-participation">›</button>
-      </div>
-      <p class="gallery-caption" id="participation-gallery-caption"></p>
-      <div class="carousel-dots" id="participation-carousel-dots"></div>
-      <button class="gallery-add-btn" onclick="addGalleryItem('participation')" id="participation-gallery-add">+ إضافة صورة</button>
-    </div>
+    <div class="carousels-list" id="participation-carousels-list"></div>
   </div>
   <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
   </div>
@@ -1260,6 +1261,11 @@ const defaultAsaasGallery = [
   {order:2,icon:"🏙️",captionAr:"مجمع الراية — 2021 إلى 2023",captionEn:"A'Raya Complex — 2021 to 2023"}
 ];
 const DEFAULT_GALLERIES = { freelance: [], asaas: defaultAsaasGallery, participation: [] };
+const DEFAULT_CAROUSELS = {
+  freelance: [],
+  asaas: [{titleAr:"مشاريع أساس", titleEn:"ASAAS Projects", order:0}],
+  participation: []
+};
 
 const defaultSkills = {
   ar:["كتابة المحتوى الرقمي","كتابة الحملات","بناء استراتيجيات المحتوى","إدارة منصات التواصل","الهوية اللفظية","المحتوى المؤسسي","كتابة النصوص الإعلانية","صياغة الرسائل الاتصالية","التقديم وإدارة الفعاليات","التفكير الإبداعي"],
@@ -1299,6 +1305,11 @@ const GALLERY_COLLECTIONS = {
   asaas: collection(db, 'asaasGallery'),
   participation: collection(db, 'participationGallery')
 };
+const CAROUSEL_COLLECTIONS = {
+  freelance: collection(db, 'freelanceCarousels'),
+  asaas: collection(db, 'asaasCarousels'),
+  participation: collection(db, 'participationCarousels')
+};
 
 /* ===== STATE (mirrors Firestore, kept in memory for fast rendering) ===== */
 let state = {
@@ -1315,7 +1326,8 @@ let state = {
   stripItems: JSON.parse(JSON.stringify(defaultStripItems)),
   portfolio: [],
   skills: [],
-  galleries: {freelance: [], asaas: [], participation: []}
+  galleries: {freelance: [], asaas: [], participation: []},
+  carousels: {freelance: [], asaas: [], participation: []}
 };
 let currentLang = "ar";
 let editMode = false;
@@ -1325,6 +1337,7 @@ let hasLoadedOnce = false;
 let draggingKey = null;
 let contentLoaded = false, portfolioLoaded = false, skillsLoaded = false;
 let galleryLoaded = {freelance:false, asaas:false, participation:false};
+let carouselsLoaded = {freelance:false, asaas:false, participation:false};
 
 /* ===== FIRST-RUN SEEDING (if Firestore is empty, use current default content) ===== */
 async function seedIfEmpty(){
@@ -1376,23 +1389,61 @@ async function seedIfEmpty(){
   }
 
   for(const cat of ['freelance','asaas','participation']){
-    const col = GALLERY_COLLECTIONS[cat];
-    const defaults = DEFAULT_GALLERIES[cat] || [];
-    if(!defaults.length) continue;
-    const snap = await getDocs(query(col, limit(1)));
-    if(snap.empty){
-      const batch = writeBatch(db);
-      defaults.forEach(g=>{
-        const ref = doc(col);
-        batch.set(ref, g);
-      });
-      await batch.commit();
+    const carCol = CAROUSEL_COLLECTIONS[cat];
+    const galCol = GALLERY_COLLECTIONS[cat];
+
+    const carSnap = await getDocs(carCol);
+    const carousels = carSnap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+
+    const galSnap = await getDocs(galCol);
+    const images = galSnap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+    const orphaned = images.filter(g=>!g.carouselId);
+
+    if(carousels.length===0 && images.length===0){
+      // Fresh category: seed the default carousel (if any) and its default images
+      const defaultCars = DEFAULT_CAROUSELS[cat] || [];
+      const defaultImgs = DEFAULT_GALLERIES[cat] || [];
+      if(defaultCars.length){
+        const batch = writeBatch(db);
+        let firstId = null;
+        defaultCars.forEach((c,i)=>{
+          const ref = doc(carCol);
+          if(i===0) firstId = ref.id;
+          batch.set(ref, c);
+        });
+        await batch.commit();
+        if(defaultImgs.length && firstId){
+          const batch2 = writeBatch(db);
+          defaultImgs.forEach(g=>{
+            const ref = doc(galCol);
+            batch2.set(ref, Object.assign({}, g, {carouselId: firstId}));
+          });
+          await batch2.commit();
+        }
+      }
+      continue;
+    }
+
+    // Migration: any pre-existing images without a carouselId (from before
+    // carousels existed) get attached to a carousel instead of being orphaned.
+    if(orphaned.length){
+      let targetId = carousels.length ? carousels[0].id : null;
+      if(!targetId){
+        const fallbackTitle = (DEFAULT_CAROUSELS[cat] && DEFAULT_CAROUSELS[cat][0])
+          || {titleAr:"الكاروسيل", titleEn:"Gallery", order:0};
+        const ref = doc(carCol);
+        await setDoc(ref, fallbackTitle);
+        targetId = ref.id;
+      }
+      const batch3 = writeBatch(db);
+      orphaned.forEach(g=>batch3.update(doc(galCol, g.id), {carouselId: targetId}));
+      await batch3.commit();
     }
   }
 }
 
 function maybeHideLoadOverlay(){
-  if(contentLoaded && portfolioLoaded && skillsLoaded && Object.values(galleryLoaded).every(Boolean) && !hasLoadedOnce){
+  if(contentLoaded && portfolioLoaded && skillsLoaded && Object.values(galleryLoaded).every(Boolean) && Object.values(carouselsLoaded).every(Boolean) && !hasLoadedOnce){
     hasLoadedOnce = true;
     const overlay = document.getElementById('load-overlay');
     if(overlay) overlay.style.display = 'none';
@@ -1439,10 +1490,17 @@ function attachListeners(){
   }, err=>console.error('Firestore skills listener error:', err));
 
   ['freelance','asaas','participation'].forEach(cat=>{
+    onSnapshot(query(CAROUSEL_COLLECTIONS[cat], orderBy('order')), snap=>{
+      state.carousels[cat] = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+      carouselsLoaded[cat] = true;
+      renderCarouselsList(cat, currentLang);
+      maybeHideLoadOverlay();
+    }, err=>console.error('Firestore carousels listener error ('+cat+'):', err));
+
     onSnapshot(query(GALLERY_COLLECTIONS[cat], orderBy('order')), snap=>{
       state.galleries[cat] = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
       galleryLoaded[cat] = true;
-      renderGallery(cat, currentLang);
+      renderCarouselsList(cat, currentLang);
       maybeHideLoadOverlay();
     }, err=>console.error('Firestore gallery listener error ('+cat+'):', err));
   });
@@ -1480,7 +1538,8 @@ function snapshotState(){
     stripItems: {ar:(state.stripItems.ar||[]).slice(), en:(state.stripItems.en||[]).slice()},
     portfolio: JSON.parse(JSON.stringify(state.portfolio)),
     skills: JSON.parse(JSON.stringify(state.skills)),
-    galleries: JSON.parse(JSON.stringify(state.galleries))
+    galleries: JSON.parse(JSON.stringify(state.galleries)),
+    carousels: JSON.parse(JSON.stringify(state.carousels))
   };
 }
 
@@ -1529,6 +1588,7 @@ async function undoLastEdit(){
     await reconcileCollection(portfolioCol, state.portfolio, snap.portfolio);
     await reconcileCollection(skillsCol, state.skills, snap.skills);
     for(const cat of ['freelance','asaas','participation']){
+      await reconcileCollection(CAROUSEL_COLLECTIONS[cat], state.carousels[cat], snap.carousels[cat]);
       await reconcileCollection(GALLERY_COLLECTIONS[cat], state.galleries[cat], snap.galleries[cat]);
     }
   }catch(err){
@@ -1580,16 +1640,35 @@ function resetAllData(){
     await addBatch2.commit();
 
     for(const cat of ['freelance','asaas','participation']){
-      const col = GALLERY_COLLECTIONS[cat];
-      const oldGallery = await getDocs(col);
+      const galCol = GALLERY_COLLECTIONS[cat];
+      const carCol = CAROUSEL_COLLECTIONS[cat];
+
+      const oldGallery = await getDocs(galCol);
       const delBatch3 = writeBatch(db);
       oldGallery.docs.forEach(d=>delBatch3.delete(d.ref));
       await delBatch3.commit();
-      const defaults = DEFAULT_GALLERIES[cat] || [];
-      if(defaults.length){
-        const addBatch3 = writeBatch(db);
-        defaults.forEach(g=>addBatch3.set(doc(col), g));
-        await addBatch3.commit();
+
+      const oldCarousels = await getDocs(carCol);
+      const delBatch4 = writeBatch(db);
+      oldCarousels.docs.forEach(d=>delBatch4.delete(d.ref));
+      await delBatch4.commit();
+
+      const defaultCars = DEFAULT_CAROUSELS[cat] || [];
+      const defaultImgs = DEFAULT_GALLERIES[cat] || [];
+      if(defaultCars.length){
+        const addBatch4 = writeBatch(db);
+        let firstId = null;
+        defaultCars.forEach((c,i)=>{
+          const ref = doc(carCol);
+          if(i===0) firstId = ref.id;
+          addBatch4.set(ref, c);
+        });
+        await addBatch4.commit();
+        if(defaultImgs.length && firstId){
+          const addBatch3 = writeBatch(db);
+          defaultImgs.forEach(g=>addBatch3.set(doc(galCol), Object.assign({}, g, {carouselId: firstId})));
+          await addBatch3.commit();
+        }
       }
     }
 
@@ -1665,28 +1744,64 @@ function renderPortfolio(lang){
     grid.innerHTML = groups[cat].map(p=>portfolioCardHTML(p, lang)).join('')
       + `<div class="add-card-btn">
           <button class="add-choice-option" onclick="addPortfolioItem('${cat}')">+ ${currentLang==='ar'?'بوست':'Post'}</button>
-          <button class="add-choice-option" onclick="addGalleryItem('${cat}')">+ ${currentLang==='ar'?'كاروسيل':'Carousel'}</button>
+          <button class="add-choice-option" onclick="addCarousel('${cat}')">+ ${currentLang==='ar'?'كاروسيل':'Carousel'}</button>
         </div>`;
   });
 }
 
-/* ===== IMAGE GALLERY / CAROUSEL (single large auto-rotating stage, one per portfolio section) ===== */
+/* ===== CAROUSELS: each section can hold several named carousels (topics),
+   each with its own set of images. A carousel is a doc in
+   CAROUSEL_COLLECTIONS[category]; its images are docs in
+   GALLERY_COLLECTIONS[category] carrying a matching carouselId. ===== */
 const GALLERY_CATEGORIES = ['freelance','asaas','participation'];
-let galleryActiveIndex = {freelance:0, asaas:0, participation:0};
-let galleryAutoTimer = {freelance:null, asaas:null, participation:null};
+let galleryActiveIndex = {}; // keyed by carouselId
+let galleryAutoTimer = {};   // keyed by carouselId
 
-function renderGallery(category, lang){
-  const stage = document.getElementById(category+'-stage');
-  const dotsWrap = document.getElementById(category+'-carousel-dots');
-  const wrap = document.getElementById(category+'-gallery-wrap');
-  const captionEl = document.getElementById(category+'-gallery-caption');
+function renderCarouselsList(category, lang){
+  const list = document.getElementById(category+'-carousels-list');
+  if(!list) return;
+  const carousels = state.carousels[category] || [];
+  list.innerHTML = carousels.map(c=>`
+    <div class="carousel-block">
+      <div class="carousel-block-head">
+        <h4 class="carousel-title" contenteditable="${editMode}" data-cr-id="${c.id}" data-cr-cat="${category}">${lang==='ar'?c.titleAr:c.titleEn}</h4>
+        <button class="section-delete-btn carousel-del-btn" onclick="deleteCarousel('${category}','${c.id}')" title="${currentLang==='ar'?'حذف الكاروسيل':'Delete carousel'}">✕</button>
+      </div>
+      <div class="gallery-wrap" id="gwrap-${c.id}">
+        <div class="gallery-stage" id="gstage-${c.id}">
+          <button class="carousel-arrow carousel-prev" onclick="carouselMove('${category}','${c.id}',-1)" title="${currentLang==='ar'?'السابق':'Previous'}">‹</button>
+          <button class="carousel-arrow carousel-next" onclick="carouselMove('${category}','${c.id}',1)" title="${currentLang==='ar'?'التالي':'Next'}">›</button>
+        </div>
+        <p class="gallery-caption" id="gcap-${c.id}"></p>
+        <div class="carousel-dots" id="gdots-${c.id}"></div>
+        <button class="gallery-add-btn" onclick="addGalleryItem('${category}','${c.id}')" id="gadd-${c.id}">+ ${currentLang==='ar'?'إضافة صورة':'Add image'}</button>
+      </div>
+    </div>`).join('');
+
+  const stage0 = list.querySelector('.gallery-stage');
+  carousels.forEach(c=>{
+    renderCarouselStage(category, c.id, lang);
+    const stage = document.getElementById('gstage-'+c.id);
+    if(stage && !stage._hoverBound){
+      stage.addEventListener('mouseenter', ()=>pauseAutoRotate(c.id));
+      stage.addEventListener('mouseleave', ()=>restartAutoRotate(category, c.id));
+      stage._hoverBound = true;
+    }
+  });
+}
+
+function renderCarouselStage(category, carouselId, lang){
+  const stage = document.getElementById('gstage-'+carouselId);
+  const dotsWrap = document.getElementById('gdots-'+carouselId);
+  const wrap = document.getElementById('gwrap-'+carouselId);
+  const captionEl = document.getElementById('gcap-'+carouselId);
   if(!stage) return;
 
-  const items = state.galleries[category] || [];
-  let idx = galleryActiveIndex[category] || 0;
+  const items = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
+  let idx = galleryActiveIndex[carouselId] || 0;
   if(idx >= items.length) idx = 0;
   if(idx < 0) idx = 0;
-  galleryActiveIndex[category] = idx;
+  galleryActiveIndex[carouselId] = idx;
 
   stage.querySelectorAll('.carousel-slide').forEach(el=>el.remove());
   const arrowRef = stage.querySelector('.carousel-arrow');
@@ -1710,25 +1825,12 @@ function renderGallery(category, lang){
       delBtn.textContent = '✕';
       delBtn.onclick = ()=>deleteGalleryItem(category, g.id);
       slide.appendChild(delBtn);
-      const moveSelect = document.createElement('select');
-      moveSelect.className = 'port-move-select';
-      moveSelect.title = currentLang==='ar' ? 'نقل إلى قسم آخر' : 'Move to another section';
-      GALLERY_CATEGORIES.forEach(c=>{
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = categoryLabel(c, currentLang);
-        if(c === category) opt.selected = true;
-        moveSelect.appendChild(opt);
-      });
-      moveSelect.onclick = (e)=>e.stopPropagation();
-      moveSelect.onchange = (e)=>{ e.stopPropagation(); moveGalleryItem(category, g.id, e.target.value); };
-      slide.appendChild(moveSelect);
     }
     stage.insertBefore(slide, arrowRef);
   });
 
   if(dotsWrap){
-    dotsWrap.innerHTML = items.map((g,i)=>`<button class="carousel-dot ${i===idx?'active':''}" onclick="carouselGoTo('${category}', ${i})" aria-label="${i+1}"></button>`).join('');
+    dotsWrap.innerHTML = items.map((g,i)=>`<button class="carousel-dot ${i===idx?'active':''}" onclick="carouselGoTo('${category}','${carouselId}', ${i})" aria-label="${i+1}"></button>`).join('');
   }
   if(captionEl){
     const active = items[idx];
@@ -1741,94 +1843,102 @@ function renderGallery(category, lang){
   }
   if(wrap) wrap.classList.toggle('has-slides', items.length > 0);
 
-  restartAutoRotate(category);
+  restartAutoRotate(category, carouselId);
 }
 
 function renderAllGalleries(lang){
-  GALLERY_CATEGORIES.forEach(cat=>renderGallery(cat, lang));
+  GALLERY_CATEGORIES.forEach(cat=>renderCarouselsList(cat, lang));
 }
 
-function restartAutoRotate(category){
-  if(galleryAutoTimer[category]){ clearInterval(galleryAutoTimer[category]); galleryAutoTimer[category] = null; }
-  const items = state.galleries[category] || [];
+function restartAutoRotate(category, carouselId){
+  if(galleryAutoTimer[carouselId]){ clearInterval(galleryAutoTimer[carouselId]); galleryAutoTimer[carouselId] = null; }
+  const items = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
   if(editMode || items.length <= 1) return;
-  galleryAutoTimer[category] = setInterval(()=>{
-    galleryActiveIndex[category] = (galleryActiveIndex[category] + 1) % state.galleries[category].length;
-    renderGallery(category, currentLang);
+  galleryAutoTimer[carouselId] = setInterval(()=>{
+    const current = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
+    if(!current.length) return;
+    galleryActiveIndex[carouselId] = (galleryActiveIndex[carouselId] + 1) % current.length;
+    renderCarouselStage(category, carouselId, currentLang);
   }, 3000);
 }
-function pauseAutoRotate(category){
-  if(galleryAutoTimer[category]){ clearInterval(galleryAutoTimer[category]); galleryAutoTimer[category] = null; }
+function pauseAutoRotate(carouselId){
+  if(galleryAutoTimer[carouselId]){ clearInterval(galleryAutoTimer[carouselId]); galleryAutoTimer[carouselId] = null; }
 }
 
-function carouselMove(category, dir){
-  const items = state.galleries[category] || [];
+function carouselMove(category, carouselId, dir){
+  const items = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
   if(!items.length) return;
-  galleryActiveIndex[category] = (galleryActiveIndex[category] + dir + items.length) % items.length;
-  renderGallery(category, currentLang);
+  galleryActiveIndex[carouselId] = (galleryActiveIndex[carouselId] + dir + items.length) % items.length;
+  renderCarouselStage(category, carouselId, currentLang);
 }
-function carouselGoTo(category, i){
-  const items = state.galleries[category] || [];
+function carouselGoTo(category, carouselId, i){
+  const items = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
   if(i < 0 || i >= items.length) return;
-  galleryActiveIndex[category] = i;
-  renderGallery(category, currentLang);
+  galleryActiveIndex[carouselId] = i;
+  renderCarouselStage(category, carouselId, currentLang);
 }
-function initCarousel(){
-  GALLERY_CATEGORIES.forEach(cat=>{
-    const stage = document.getElementById(cat+'-stage');
-    if(!stage) return;
-    stage.addEventListener('mouseenter', ()=>pauseAutoRotate(cat));
-    stage.addEventListener('mouseleave', ()=>restartAutoRotate(cat));
-  });
-}
-function addGalleryItem(category){
+
+function addCarousel(category){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
-  const col = GALLERY_COLLECTIONS[category];
+  const col = CAROUSEL_COLLECTIONS[category];
   if(!col) return;
   pushUndoSnapshot();
-  const items = state.galleries[category] || [];
+  const carousels = state.carousels[category] || [];
+  const nextOrder = carousels.length ? Math.max(...carousels.map(c=>c.order||0))+1 : 0;
+  addDoc(col, {
+    order: nextOrder,
+    titleAr: "كاروسيل جديد",
+    titleEn: "New Carousel"
+  }).catch(err=>console.error(err));
+}
+function deleteCarousel(category, carouselId){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const msg = currentLang==='ar' ? 'حذف هذا الكاروسيل وكل صوره؟' : 'Delete this carousel and all its images?';
+  if(!confirm(msg)) return;
+  pushUndoSnapshot();
+  (async ()=>{
+    try{
+      const galCol = GALLERY_COLLECTIONS[category];
+      const images = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
+      if(images.length){
+        const batch = writeBatch(db);
+        images.forEach(g=>batch.delete(doc(galCol, g.id)));
+        await batch.commit();
+      }
+      await deleteDoc(doc(CAROUSEL_COLLECTIONS[category], carouselId));
+      delete galleryActiveIndex[carouselId];
+      pauseAutoRotate(carouselId);
+    }catch(err){ console.error('Delete carousel failed:', err); }
+  })();
+}
+
+function addGalleryItem(category, carouselId){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const col = GALLERY_COLLECTIONS[category];
+  if(!col || !carouselId) return;
+  pushUndoSnapshot();
+  const items = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
   const nextOrder = items.length ? Math.max(...items.map(g=>g.order||0))+1 : 0;
   const newIndex = items.length;
   addDoc(col, {
     order: nextOrder,
+    carouselId: carouselId,
     icon: "🖼️",
     captionAr: "وصف الصورة. انقر لتعديله.",
     captionEn: "Image caption. Click to edit."
   }).then(()=>{
-    galleryActiveIndex[category] = newIndex;
-    pauseAutoRotate(category);
+    galleryActiveIndex[carouselId] = newIndex;
+    pauseAutoRotate(carouselId);
   }).catch(err=>console.error(err));
 }
 function deleteGalleryItem(category, id){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const col = GALLERY_COLLECTIONS[category];
   if(!col) return;
-  const msg = currentLang==='ar' ? 'حذف هذه الصورة من المعرض؟' : 'Delete this image from the gallery?';
+  const msg = currentLang==='ar' ? 'حذف هذه الصورة من الكاروسيل؟' : 'Delete this image from the carousel?';
   if(!confirm(msg)) return;
   pushUndoSnapshot();
   deleteDoc(doc(col, id)).catch(err=>console.error(err));
-}
-
-async function moveGalleryItem(fromCat, id, toCat){
-  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
-  if(!GALLERY_CATEGORIES.includes(toCat) || fromCat === toCat) return;
-  const fromCol = GALLERY_COLLECTIONS[fromCat];
-  const toCol = GALLERY_COLLECTIONS[toCat];
-  if(!fromCol || !toCol) return;
-  const item = (state.galleries[fromCat] || []).find(g=>g.id===id);
-  if(!item) return;
-  pushUndoSnapshot();
-  const data = Object.assign({}, item);
-  delete data.id;
-  const targetItems = state.galleries[toCat] || [];
-  data.order = targetItems.length ? Math.max(...targetItems.map(g=>g.order||0))+1 : 0;
-  try{
-    await addDoc(toCol, data);
-    await deleteDoc(doc(fromCol, id));
-    galleryActiveIndex[toCat] = targetItems.length;
-  }catch(err){
-    console.error('Move gallery item failed:', err);
-  }
 }
 
 function renderSkills(lang){
@@ -1921,14 +2031,6 @@ function updateEditChrome(){
   document.getElementById('hero-photo-badge-title').title = currentLang==='ar' ? 'تغيير الصورة' : 'Change photo';
   document.getElementById('hero-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
   document.getElementById('featured-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
-  GALLERY_CATEGORIES.forEach(cat=>{
-    const prevBtn = document.getElementById('carousel-prev-'+cat);
-    const nextBtn = document.getElementById('carousel-next-'+cat);
-    const addBtn = document.getElementById(cat+'-gallery-add');
-    if(prevBtn) prevBtn.title = currentLang==='ar' ? 'السابق' : 'Previous';
-    if(nextBtn) nextBtn.title = currentLang==='ar' ? 'التالي' : 'Next';
-    if(addBtn) addBtn.textContent = currentLang==='ar' ? '+ إضافة صورة' : '+ Add image';
-  });
   document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'جارِ تحميل المحتوى...' : 'Loading content...';
   Object.keys(SECTION_LABELS).forEach(id=>{
     const btn = document.getElementById('del-'+id);
@@ -2061,6 +2163,17 @@ document.addEventListener('focusout', function(e){
     const fieldName = currentLang==='ar' ? 'captionAr' : 'captionEn';
     const newVal = el.textContent;
     const item = (state.galleries[cat] || []).find(g=>g.id===id);
+    if(item && item[fieldName] === newVal) return;
+    pushUndoSnapshot();
+    updateDoc(doc(col, id), {[fieldName]: newVal}).catch(err=>console.error(err));
+  } else if(el.hasAttribute('data-cr-id')){
+    const id = el.getAttribute('data-cr-id');
+    const cat = el.getAttribute('data-cr-cat');
+    const col = CAROUSEL_COLLECTIONS[cat];
+    if(!col) return;
+    const fieldName = currentLang==='ar' ? 'titleAr' : 'titleEn';
+    const newVal = el.textContent;
+    const item = (state.carousels[cat] || []).find(c=>c.id===id);
     if(item && item[fieldName] === newVal) return;
     pushUndoSnapshot();
     updateDoc(doc(col, id), {[fieldName]: newVal}).catch(err=>console.error(err));
@@ -2435,6 +2548,8 @@ Object.assign(window, {
   addSkillItem,
   addGalleryItem,
   deleteGalleryItem,
+  addCarousel,
+  deleteCarousel,
   carouselMove,
   carouselGoTo
 });
@@ -2448,7 +2563,6 @@ Object.assign(window, {
   }
   attachListeners();
   initImageDrag();
-  initCarousel();
   setLang('ar');
 })();
 </script>
