@@ -352,21 +352,31 @@ body.edit-mode .link-edit-btn{display:inline-flex;}
 
 .add-card-btn{
   display:none;
+  flex-direction:row;
   align-items:center;
   justify-content:center;
   min-height:170px;
   border:2px dashed var(--border);
   border-radius:20px;
   background:transparent;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
-  font-family:inherit;
-  color:var(--muted);
-  gap:8px;
+  gap:12px;
 }
 body.edit-mode .add-card-btn{display:flex;}
-.add-card-btn:hover{background:var(--white);color:var(--text);}
+.add-choice-option{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:11px 20px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  font-weight:700;
+  font-size:13.5px;
+  font-family:inherit;
+  color:var(--text);
+  cursor:pointer;
+}
+.add-choice-option:hover{background:var(--yellow);}
 
 .add-pill-btn{
   display:none;
@@ -1635,7 +1645,10 @@ function renderPortfolio(lang){
     const grid = document.getElementById('portfolio-grid-'+cat);
     if(!grid) return;
     grid.innerHTML = groups[cat].map(p=>portfolioCardHTML(p, lang)).join('')
-      + `<button class="add-card-btn" onclick="addPortfolioItem('${cat}')">+ ${currentLang==='ar'?'إضافة عمل جديد':'Add new work'}</button>`;
+      + `<div class="add-card-btn">
+          <button class="add-choice-option" onclick="addPortfolioItem('${cat}')">+ ${currentLang==='ar'?'بوست':'Post'}</button>
+          <button class="add-choice-option" onclick="addGalleryItem('${cat}')">+ ${currentLang==='ar'?'كاروسيل':'Carousel'}</button>
+        </div>`;
   });
 }
 
