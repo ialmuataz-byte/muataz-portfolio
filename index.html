@@ -689,6 +689,92 @@ body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
 .port-body h3{font-size:21px;margin-bottom:10px;}
 .port-body p{color:var(--muted);font-size:14.5px;}
 
+/* ---- Portfolio subsections ---- */
+.portfolio-subsection{margin-bottom:56px;}
+.portfolio-subsection:last-child{margin-bottom:0;}
+.portfolio-sub-heading{
+  display:inline-flex;
+  align-items:center;
+  font-size:14.5px;
+  font-weight:900;
+  background:var(--yellow);
+  border:1.5px solid var(--border);
+  padding:8px 22px;
+  border-radius:30px;
+  margin:0 0 24px;
+}
+.portfolio-subsection .portfolio-grid{margin-bottom:0;}
+
+/* ---- Asaas image carousel ---- */
+.asaas-gallery-wrap{position:relative;margin-top:26px;}
+.gallery-carousel{
+  display:flex;
+  gap:20px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  padding:4px 4px 14px;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.gallery-carousel::-webkit-scrollbar{display:none;}
+.carousel-slide{
+  position:relative;
+  flex:0 0 auto;
+  width:250px;
+  scroll-snap-align:start;
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+}
+.carousel-slide-media{
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  background:var(--card);
+  overflow:hidden;
+}
+.carousel-slide-img{width:100%;height:100%;object-fit:cover;}
+.carousel-slide-icon{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;
+}
+.carousel-caption{padding:14px 16px;font-size:13.5px;color:var(--muted);min-height:20px;}
+.carousel-add-slide{
+  flex:0 0 auto;
+  width:250px;
+  min-height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1.5px dashed var(--border);
+  border-radius:18px;
+  background:transparent;
+}
+.carousel-add-slide .add-card-btn{position:static;width:auto;}
+.carousel-arrow{
+  display:none;
+  position:absolute;
+  top:calc(50% - 34px);
+  width:38px;height:38px;
+  border-radius:50%;
+  background:var(--white);
+  border:1.5px solid var(--border);
+  font-size:19px;
+  cursor:pointer;
+  align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--dark);
+  z-index:10;
+}
+.gallery-carousel:not(:empty) ~ .carousel-arrow,
+.asaas-gallery-wrap.has-slides .carousel-arrow{display:flex;}
+.carousel-prev{inset-inline-start:-6px;}
+.carousel-next{inset-inline-end:-6px;}
+.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:6px;}
+.carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);cursor:pointer;padding:0;}
+.carousel-dot.active{background:var(--yellow);}
+
 /* ============ SKILLS ============ */
 .skills-grid{
   display:grid;
@@ -930,7 +1016,26 @@ footer{
     <button class="section-delete-btn" style="top:0;inset-inline-end:0;" onclick="deleteSection('featured')" title="حذف العمل المميز" id="del-featured">✕</button>
   </div>
 
-  <div class="portfolio-grid" id="portfolio-grid"></div>
+  <div class="portfolio-subsection">
+    <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-freelance" data-ar="أعمال مستقلة" data-en="Freelance Work">أعمال مستقلة</h3>
+    <div class="portfolio-grid" id="portfolio-grid-freelance"></div>
+  </div>
+
+  <div class="portfolio-subsection">
+    <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-asaas" data-ar="أساس" data-en="ASAAS">أساس</h3>
+    <div class="portfolio-grid" id="portfolio-grid-asaas"></div>
+    <div class="asaas-gallery-wrap" id="asaas-gallery-wrap">
+      <div class="gallery-carousel" id="asaas-carousel"></div>
+      <button class="carousel-arrow carousel-prev" onclick="carouselMove(-1)" title="السابق" id="carousel-prev-title">‹</button>
+      <button class="carousel-arrow carousel-next" onclick="carouselMove(1)" title="التالي" id="carousel-next-title">›</button>
+      <div class="carousel-dots" id="asaas-carousel-dots"></div>
+    </div>
+  </div>
+
+  <div class="portfolio-subsection">
+    <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-participation" data-ar="مشاركات" data-en="Participations">مشاركات</h3>
+    <div class="portfolio-grid" id="portfolio-grid-participation"></div>
+  </div>
   <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
   </div>
 </section>
@@ -1047,30 +1152,36 @@ const defaultStripItems = {
 };
 
 const defaultPortfolio = [
-  {order:0,icon:"🎓",link:"https://drive.google.com/file/d/143sAwHDO4B9g3Wd5g53ovAc7rsZLnEf3/view?usp=sharing",tagAr:"إلقاء شعري",tagEn:"Poetry Recitation",
+  {order:0,icon:"🎓",category:"participation",link:"https://drive.google.com/file/d/143sAwHDO4B9g3Wd5g53ovAc7rsZLnEf3/view?usp=sharing",tagAr:"إلقاء شعري",tagEn:"Poetry Recitation",
    titleAr:"تقديم قصيدة التخرج",titleEn:"Graduation Poem Recitation",
    descAr:"إلقاء قصيدة التخرج التي كتبها المعتز احتفاءً بالمناسبة، في محطة من محطاته الشعرية البارزة. اضغط لمشاهدة التسجيل الكامل.",
    descEn:"Delivered the graduation poem he wrote for the occasion, one of his notable poetry milestones. Click to watch the full recording."},
-  {order:1,icon:"📱",tagAr:"محتوى منصات التواصل",tagEn:"Social Media Content",
+  {order:1,icon:"📱",category:"freelance",tagAr:"محتوى منصات التواصل",tagEn:"Social Media Content",
    titleAr:"أواصر — محتوى منصات التواصل",titleEn:"Awasr — Social Media Content",
    descAr:"كتابة محتوى منصات التواصل الاجتماعي لشركة أواصر خلال الفترة من 15 سبتمبر 2025 إلى 8 فبراير 2026، مع التركيز على الوضوح والقرب من الجمهور.",
    descEn:"Created social media content for Awasr between September 15, 2025 and February 8, 2026, focusing on clarity, audience relevance, and brand voice consistency."},
-  {order:2,icon:"🏢",logos:["asaas-logo.png","araya-logo.png","ssa-logo.png"],tagAr:"إدارة المحتوى والمنصات",tagEn:"Content & Platform Management",
+  {order:2,icon:"🏢",category:"asaas",logos:["asaas-logo.png","araya-logo.png","ssa-logo.png"],tagAr:"إدارة المحتوى والمنصات",tagEn:"Content & Platform Management",
    titleAr:"أساس — إدارة الحسابات والمشاريع",titleEn:"ASAAS — Accounts & Projects Management",
    descAr:"تأسيس وإدارة حسابات العمل في شركة أساس والمشاريع التابعة لها: حساب أساس منذ 2018، وسوق شاطئ الحافة منذ 2023، ومجمع الراية بين 2021 و2023.",
    descEn:"Established and managed the digital presence of ASAAS and its projects: ASAAS since 2018, Souq Shati Al Hafa since 2023, and A'Raya Complex from 2021 to 2023."},
-  {order:3,icon:"🎉",tagAr:"محتوى وتقديم فعاليات",tagEn:"Event Content & Hosting",
+  {order:3,icon:"🎉",category:"freelance",tagAr:"محتوى وتقديم فعاليات",tagEn:"Event Content & Hosting",
    titleAr:"احتفالية اليوم الوطني",titleEn:"National Day Celebration",
    descAr:"تقديم وإدارة احتفالية اليوم الوطني وتجمع الموظفين، في تجربة جمعت بين الحضور، النص، وإدارة أجواء المناسبة.",
    descEn:"Hosted and managed a National Day staff gathering, combining content, stage presence, and event atmosphere management."},
-  {order:4,icon:"✍️",tagAr:"تعاون إبداعي",tagEn:"Creative Writing Collaboration",
+  {order:4,icon:"✍️",category:"participation",tagAr:"تعاون إبداعي",tagEn:"Creative Writing Collaboration",
    titleAr:"مترفة الغيمات",titleEn:"Mutrafat Al Ghaymat",
    descAr:"التعاون مع المنشد والمخرج جلال الخويطري في كتابة العمل الفني \"مترفة الغيمات\".",
    descEn:"Collaborated with vocalist and director Jalal Al Khuwaitri on the creative writing of \"Mutrafat Al Ghaymat.\""},
-  {order:5,icon:"📜",tagAr:"شِعر وحضور جماهيري",tagEn:"Poetry & Public Presence",
+  {order:5,icon:"📜",category:"participation",tagAr:"شِعر وحضور جماهيري",tagEn:"Poetry & Public Presence",
    titleAr:"المسيرة الشعرية",titleEn:"Poetry Journey",
    descAr:"محطات شعرية بارزة، منها إلقاء قصيدة التخرج، والدعوة عام 2016 إلى لبنان لحضور صالون ميس الأدبي مع مجموعة من الشعراء العرب.",
    descEn:"Key poetry milestones, including delivering a graduation poem and being invited in 2016 to Lebanon to attend Salon Mays Literary Gathering with Arab poets."}
+];
+
+const defaultAsaasGallery = [
+  {order:0,icon:"🏢",captionAr:"حساب أساس — إدارة يومية منذ 2018",captionEn:"ASAAS account — managed daily since 2018"},
+  {order:1,icon:"🛍️",captionAr:"سوق شاطئ الحافة — منذ 2023",captionEn:"Souq Shati Al Hafa — since 2023"},
+  {order:2,icon:"🏙️",captionAr:"مجمع الراية — 2021 إلى 2023",captionEn:"A'Raya Complex — 2021 to 2023"}
 ];
 
 const defaultSkills = {
@@ -1106,6 +1217,7 @@ const SECTION_LABELS = {
 const contentRef = doc(db, 'site', 'content');
 const portfolioCol = collection(db, 'portfolio');
 const skillsCol = collection(db, 'skills');
+const galleryCol = collection(db, 'asaasGallery');
 
 /* ===== STATE (mirrors Firestore, kept in memory for fast rendering) ===== */
 let state = {
@@ -1121,7 +1233,8 @@ let state = {
   links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
   stripItems: JSON.parse(JSON.stringify(defaultStripItems)),
   portfolio: [],
-  skills: []
+  skills: [],
+  asaasGallery: []
 };
 let currentLang = "ar";
 let editMode = false;
@@ -1129,7 +1242,7 @@ let pendingImageKey = null;
 let currentUser = null;
 let hasLoadedOnce = false;
 let draggingKey = null;
-let contentLoaded = false, portfolioLoaded = false, skillsLoaded = false;
+let contentLoaded = false, portfolioLoaded = false, skillsLoaded = false, galleryLoaded = false;
 
 /* ===== FIRST-RUN SEEDING (if Firestore is empty, use current default content) ===== */
 async function seedIfEmpty(){
@@ -1179,10 +1292,20 @@ async function seedIfEmpty(){
     });
     await batch.commit();
   }
+
+  const gallerySnap = await getDocs(query(galleryCol, limit(1)));
+  if(gallerySnap.empty){
+    const batch = writeBatch(db);
+    defaultAsaasGallery.forEach(g=>{
+      const ref = doc(galleryCol);
+      batch.set(ref, g);
+    });
+    await batch.commit();
+  }
 }
 
 function maybeHideLoadOverlay(){
-  if(contentLoaded && portfolioLoaded && skillsLoaded && !hasLoadedOnce){
+  if(contentLoaded && portfolioLoaded && skillsLoaded && galleryLoaded && !hasLoadedOnce){
     hasLoadedOnce = true;
     const overlay = document.getElementById('load-overlay');
     if(overlay) overlay.style.display = 'none';
@@ -1227,6 +1350,13 @@ function attachListeners(){
     renderSkills(currentLang);
     maybeHideLoadOverlay();
   }, err=>console.error('Firestore skills listener error:', err));
+
+  onSnapshot(query(galleryCol, orderBy('order')), snap=>{
+    state.asaasGallery = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+    galleryLoaded = true;
+    renderAsaasGallery(currentLang);
+    maybeHideLoadOverlay();
+  }, err=>console.error('Firestore gallery listener error:', err));
 }
 
 /* ===== WRITE HELPERS ===== */
@@ -1260,7 +1390,8 @@ function snapshotState(){
     links: Object.assign({}, state.links),
     stripItems: {ar:(state.stripItems.ar||[]).slice(), en:(state.stripItems.en||[]).slice()},
     portfolio: JSON.parse(JSON.stringify(state.portfolio)),
-    skills: JSON.parse(JSON.stringify(state.skills))
+    skills: JSON.parse(JSON.stringify(state.skills)),
+    asaasGallery: JSON.parse(JSON.stringify(state.asaasGallery))
   };
 }
 
@@ -1308,6 +1439,7 @@ async function undoLastEdit(){
     }, {merge:true});
     await reconcileCollection(portfolioCol, state.portfolio, snap.portfolio);
     await reconcileCollection(skillsCol, state.skills, snap.skills);
+    await reconcileCollection(galleryCol, state.asaasGallery, snap.asaasGallery);
   }catch(err){
     console.error('Undo failed:', err);
     alert(currentLang==='ar' ? 'فشل التراجع.' : 'Undo failed.');
@@ -1317,7 +1449,7 @@ async function undoLastEdit(){
 }
 
 function resetAllData(){
-  const msg = currentLang==='ar' ? "سيتم حذف كل التعديلات المخزّنة في Firebase (النصوص، الصور، الأقسام المحذوفة، الأعمال، المهارات) والعودة للنسخة الأصلية. هل أنت متأكد؟" : "This will erase all edits stored in Firebase (texts, images, deleted sections, portfolio, skills) and restore the original version. Are you sure?";
+  const msg = currentLang==='ar' ? "سيتم حذف كل التعديلات المخزّنة في Firebase (النصوص، الصور، الأقسام المحذوفة، الأعمال، المهارات، معرض أساس) والعودة للنسخة الأصلية. هل أنت متأكد؟" : "This will erase all edits stored in Firebase (texts, images, deleted sections, portfolio, skills, ASAAS gallery) and restore the original version. Are you sure?";
   if(!confirm(msg)) return;
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
 
@@ -1356,6 +1488,14 @@ function resetAllData(){
     defaultSkills.ar.forEach((ar,i)=>addBatch2.set(doc(skillsCol), {ar, en:defaultSkills.en[i], order:i}));
     await addBatch2.commit();
 
+    const oldGallery = await getDocs(galleryCol);
+    const delBatch3 = writeBatch(db);
+    oldGallery.docs.forEach(d=>delBatch3.delete(d.ref));
+    await delBatch3.commit();
+    const addBatch3 = writeBatch(db);
+    defaultAsaasGallery.forEach(g=>addBatch3.set(doc(galleryCol), g));
+    await addBatch3.commit();
+
     undoStack = [];
     updateUndoButton();
   })();
@@ -1368,20 +1508,18 @@ function renderStrip(lang){
   document.getElementById('strip-track').innerHTML = block + " &nbsp; " + block;
 }
 
-function renderPortfolio(lang){
-  const grid = document.getElementById('portfolio-grid');
-  grid.innerHTML = state.portfolio.map((p)=>{
-    const tag = p.link ? 'a' : 'div';
-    const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
-    let thumbInner;
-    if(p.image){
-      thumbInner = `<img src="${p.image}" class="port-thumb-photo" alt="">`;
-    } else if(p.logos){
-      thumbInner = p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('');
-    } else {
-      thumbInner = p.icon || '';
-    }
-    return `
+function portfolioCardHTML(p, lang){
+  const tag = p.link ? 'a' : 'div';
+  const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
+  let thumbInner;
+  if(p.image){
+    thumbInner = `<img src="${p.image}" class="port-thumb-photo" alt="">`;
+  } else if(p.logos){
+    thumbInner = p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('');
+  } else {
+    thumbInner = p.icon || '';
+  }
+  return `
     <${tag} class="port-card" ${linkAttrs}>
       <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem('${p.id}')" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
       <div class="port-thumb ${p.logos&&!p.image?'port-thumb-logos':''}">
@@ -1395,7 +1533,110 @@ function renderPortfolio(lang){
         <button class="link-edit-btn" onclick="event.preventDefault();event.stopPropagation();editPortfolioLink('${p.id}')">🔗 ${currentLang==='ar'?(p.link?'تعديل الرابط':'إضافة رابط'):(p.link?'Edit link':'Add link')}</button>
       </div>
     </${tag}>`;
-  }).join('') + `<button class="add-card-btn" onclick="addPortfolioItem()">+ ${currentLang==='ar'?'إضافة عمل جديد':'Add new work'}</button>`;
+}
+
+const PORTFOLIO_CATEGORIES = ['freelance','asaas','participation'];
+
+function renderPortfolio(lang){
+  const groups = {freelance:[], asaas:[], participation:[]};
+  state.portfolio.forEach(p=>{
+    const cat = PORTFOLIO_CATEGORIES.includes(p.category) ? p.category : 'freelance';
+    groups[cat].push(p);
+  });
+  PORTFOLIO_CATEGORIES.forEach(cat=>{
+    const grid = document.getElementById('portfolio-grid-'+cat);
+    if(!grid) return;
+    grid.innerHTML = groups[cat].map(p=>portfolioCardHTML(p, lang)).join('')
+      + `<button class="add-card-btn" onclick="addPortfolioItem('${cat}')">+ ${currentLang==='ar'?'إضافة عمل جديد':'Add new work'}</button>`;
+  });
+}
+
+/* ===== ASAAS IMAGE GALLERY / CAROUSEL ===== */
+function renderAsaasGallery(lang){
+  const track = document.getElementById('asaas-carousel');
+  const dotsWrap = document.getElementById('asaas-carousel-dots');
+  const wrap = document.getElementById('asaas-gallery-wrap');
+  if(!track) return;
+  track.innerHTML = state.asaasGallery.map(g=>{
+    const inner = g.image
+      ? `<img src="${g.image}" class="carousel-slide-img" alt="">`
+      : `<div class="carousel-slide-icon">${g.icon || '🖼️'}</div>`;
+    return `
+    <div class="carousel-slide">
+      <button class="card-delete-btn" onclick="deleteGalleryItem('${g.id}')" title="${currentLang==='ar'?'حذف الصورة':'Delete image'}">✕</button>
+      <div class="carousel-slide-media">
+        ${inner}
+        <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="changeImage('gallery-${g.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
+      </div>
+      <p class="carousel-caption" contenteditable="${editMode}" data-gl-id="${g.id}">${lang==='ar'?g.captionAr:g.captionEn}</p>
+    </div>`;
+  }).join('') + `<div class="carousel-slide carousel-add-slide"><button class="add-card-btn" onclick="addGalleryItem()">+ ${currentLang==='ar'?'إضافة صورة':'Add image'}</button></div>`;
+
+  if(dotsWrap){
+    dotsWrap.innerHTML = state.asaasGallery.map((g,i)=>`<button class="carousel-dot" onclick="carouselGoTo(${i})" aria-label="${i+1}"></button>`).join('');
+  }
+  if(wrap) wrap.classList.toggle('has-slides', state.asaasGallery.length > 0);
+  updateCarouselDots();
+}
+
+function getCarouselSlides(){
+  const track = document.getElementById('asaas-carousel');
+  return track ? Array.from(track.querySelectorAll('.carousel-slide:not(.carousel-add-slide)')) : [];
+}
+function getCurrentSlideIndex(){
+  const track = document.getElementById('asaas-carousel');
+  const slides = getCarouselSlides();
+  if(!track || !slides.length) return 0;
+  const trackRect = track.getBoundingClientRect();
+  let closest = 0, min = Infinity;
+  slides.forEach((s,i)=>{
+    const d = Math.abs(s.getBoundingClientRect().left - trackRect.left);
+    if(d < min){ min = d; closest = i; }
+  });
+  return closest;
+}
+function carouselMove(dir){
+  const slides = getCarouselSlides();
+  if(!slides.length) return;
+  const idx = Math.max(0, Math.min(slides.length-1, getCurrentSlideIndex() + dir));
+  slides[idx].scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
+}
+function carouselGoTo(i){
+  const slides = getCarouselSlides();
+  if(slides[i]) slides[i].scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
+}
+function updateCarouselDots(){
+  const idx = getCurrentSlideIndex();
+  document.querySelectorAll('#asaas-carousel-dots .carousel-dot').forEach((d,i)=>{
+    d.classList.toggle('active', i===idx);
+  });
+}
+function initCarousel(){
+  const track = document.getElementById('asaas-carousel');
+  if(!track) return;
+  let raf = null;
+  track.addEventListener('scroll', ()=>{
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(updateCarouselDots);
+  });
+}
+function addGalleryItem(){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  pushUndoSnapshot();
+  const nextOrder = state.asaasGallery.length ? Math.max(...state.asaasGallery.map(g=>g.order||0))+1 : 0;
+  addDoc(galleryCol, {
+    order: nextOrder,
+    icon: "🖼️",
+    captionAr: "وصف الصورة. انقر لتعديله.",
+    captionEn: "Image caption. Click to edit."
+  }).catch(err=>console.error(err));
+}
+function deleteGalleryItem(id){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const msg = currentLang==='ar' ? 'حذف هذه الصورة من المعرض؟' : 'Delete this image from the gallery?';
+  if(!confirm(msg)) return;
+  pushUndoSnapshot();
+  deleteDoc(doc(galleryCol, id)).catch(err=>console.error(err));
 }
 
 function renderSkills(lang){
@@ -1488,6 +1729,8 @@ function updateEditChrome(){
   document.getElementById('hero-photo-badge-title').title = currentLang==='ar' ? 'تغيير الصورة' : 'Change photo';
   document.getElementById('hero-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
   document.getElementById('featured-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
+  document.getElementById('carousel-prev-title').title = currentLang==='ar' ? 'السابق' : 'Previous';
+  document.getElementById('carousel-next-title').title = currentLang==='ar' ? 'التالي' : 'Next';
   document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'جارِ تحميل المحتوى...' : 'Loading content...';
   Object.keys(SECTION_LABELS).forEach(id=>{
     const btn = document.getElementById('del-'+id);
@@ -1498,6 +1741,7 @@ function updateEditChrome(){
 function renderAll(){
   renderStrip(currentLang);
   renderPortfolio(currentLang);
+  renderAsaasGallery(currentLang);
   renderSkills(currentLang);
   renderAbout(currentLang);
   applyStaticTexts(currentLang);
@@ -1611,6 +1855,14 @@ document.addEventListener('focusout', function(e){
     if(item && item[fieldName] === newVal) return;
     pushUndoSnapshot();
     updateDoc(doc(skillsCol, id), {[fieldName]: newVal}).catch(err=>console.error(err));
+  } else if(el.hasAttribute('data-gl-id')){
+    const id = el.getAttribute('data-gl-id');
+    const fieldName = currentLang==='ar' ? 'captionAr' : 'captionEn';
+    const newVal = el.textContent;
+    const item = state.asaasGallery.find(g=>g.id===id);
+    if(item && item[fieldName] === newVal) return;
+    pushUndoSnapshot();
+    updateDoc(doc(galleryCol, id), {[fieldName]: newVal}).catch(err=>console.error(err));
   } else if(el.hasAttribute('data-about')){
     const newVal = el.innerHTML;
     const oldVal = currentLang==='ar' ? state.aboutAr : state.aboutEn;
@@ -1648,6 +1900,9 @@ document.getElementById('file-input').addEventListener('change', function(e){
     } else if(pendingImageKey.startsWith('portfolio-')){
       const id = pendingImageKey.slice('portfolio-'.length);
       updateDoc(doc(portfolioCol, id), {image: dataUrl}).catch(err=>console.error(err));
+    } else if(pendingImageKey.startsWith('gallery-')){
+      const id = pendingImageKey.slice('gallery-'.length);
+      updateDoc(doc(galleryCol, id), {image: dataUrl}).catch(err=>console.error(err));
     }
     pendingImageKey = null;
     e.target.value = '';
@@ -1741,12 +1996,13 @@ function deletePortfolioItem(id){
   pushUndoSnapshot();
   deleteDoc(doc(portfolioCol, id)).catch(err=>console.error(err));
 }
-function addPortfolioItem(){
+function addPortfolioItem(category){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   pushUndoSnapshot();
   const nextOrder = state.portfolio.length ? Math.max(...state.portfolio.map(p=>p.order||0))+1 : 0;
   addDoc(portfolioCol, {
     order: nextOrder,
+    category: PORTFOLIO_CATEGORIES.includes(category) ? category : 'freelance',
     icon:"✨",
     tagAr:"وسم جديد", tagEn:"New Tag",
     titleAr:"عنوان عمل جديد", titleEn:"New Work Title",
@@ -1844,7 +2100,11 @@ Object.assign(window, {
   addPortfolioItem,
   editPortfolioLink,
   deleteSkillItem,
-  addSkillItem
+  addSkillItem,
+  addGalleryItem,
+  deleteGalleryItem,
+  carouselMove,
+  carouselGoTo
 });
 
 /* ===== INIT ===== */
@@ -1856,6 +2116,7 @@ Object.assign(window, {
   }
   attachListeners();
   initImageDrag();
+  initCarousel();
   setLang('ar');
 })();
 </script>
