@@ -744,73 +744,60 @@ body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
 }
 .portfolio-subsection .portfolio-grid{margin-bottom:0;}
 
-/* ---- Asaas image carousel ---- */
-.asaas-gallery-wrap{position:relative;margin-top:26px;}
-.gallery-carousel{
-  display:flex;
-  gap:20px;
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  padding:4px 4px 14px;
-  scrollbar-width:none;
-  -ms-overflow-style:none;
-}
-.gallery-carousel::-webkit-scrollbar{display:none;}
-.carousel-slide{
+/* ---- Asaas image carousel (single large auto-rotating stage) ---- */
+.asaas-gallery-wrap{
   position:relative;
-  flex:0 0 auto;
-  width:250px;
-  scroll-snap-align:start;
-  background:var(--white);
-  border:1.5px solid var(--border);
-  border-radius:18px;
-  overflow:hidden;
+  margin:26px auto 0;
+  max-width:680px;
 }
-.carousel-slide-media{
+.gallery-stage{
   position:relative;
   width:100%;
   aspect-ratio:4/3;
   background:var(--card);
+  border:1.5px solid var(--border);
+  border-radius:20px;
   overflow:hidden;
 }
-.carousel-slide-img{width:100%;height:100%;object-fit:cover;}
-.carousel-slide-icon{
-  width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:44px;
-}
-.carousel-caption{padding:14px 16px;font-size:13.5px;color:var(--muted);min-height:20px;}
-.carousel-add-slide{
-  flex:0 0 auto;
-  width:250px;
-  min-height:100%;
+.carousel-slide{
+  position:absolute;
+  inset:0;
   display:flex;
   align-items:center;
   justify-content:center;
-  border:1.5px dashed var(--border);
-  border-radius:18px;
-  background:transparent;
+  background:var(--card);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .6s ease;
 }
-.carousel-add-slide .add-card-btn{position:static;width:auto;}
+.carousel-slide.active{opacity:1;pointer-events:auto;}
+.carousel-slide-img{width:100%;height:100%;object-fit:contain;}
+.carousel-slide-icon{font-size:72px;}
+.gallery-caption{
+  margin:16px 6px 0;
+  font-size:14.5px;
+  color:var(--muted);
+  text-align:center;
+  min-height:22px;
+}
+.gallery-add-btn{position:static;display:block;margin:16px auto 0;width:auto;}
 .carousel-arrow{
-  display:none;
   position:absolute;
-  top:calc(50% - 34px);
-  width:38px;height:38px;
+  top:calc(50% - 21px);
+  width:42px;height:42px;
   border-radius:50%;
   background:var(--white);
   border:1.5px solid var(--border);
-  font-size:19px;
+  font-size:20px;
   cursor:pointer;
+  display:flex;
   align-items:center;justify-content:center;
   box-shadow:2px 2px 0 var(--dark);
-  z-index:10;
+  z-index:20;
 }
-.gallery-carousel:not(:empty) ~ .carousel-arrow,
-.asaas-gallery-wrap.has-slides .carousel-arrow{display:flex;}
-.carousel-prev{inset-inline-start:-6px;}
-.carousel-next{inset-inline-end:-6px;}
-.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:6px;}
+.carousel-prev{inset-inline-start:14px;}
+.carousel-next{inset-inline-end:14px;}
+.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:14px;}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);cursor:pointer;padding:0;}
 .carousel-dot.active{background:var(--yellow);}
 
@@ -1064,10 +1051,13 @@ footer{
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-asaas" data-ar="أساس" data-en="ASAAS">أساس</h3>
     <div class="portfolio-grid" id="portfolio-grid-asaas" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'asaas')"></div>
     <div class="asaas-gallery-wrap" id="asaas-gallery-wrap">
-      <div class="gallery-carousel" id="asaas-carousel"></div>
-      <button class="carousel-arrow carousel-prev" onclick="carouselMove(-1)" title="السابق" id="carousel-prev-title">‹</button>
-      <button class="carousel-arrow carousel-next" onclick="carouselMove(1)" title="التالي" id="carousel-next-title">›</button>
+      <div class="gallery-stage" id="asaas-stage">
+        <button class="carousel-arrow carousel-prev" onclick="carouselMove(-1)" title="السابق" id="carousel-prev-title">‹</button>
+        <button class="carousel-arrow carousel-next" onclick="carouselMove(1)" title="التالي" id="carousel-next-title">›</button>
+      </div>
+      <p class="gallery-caption" id="asaas-gallery-caption"></p>
       <div class="carousel-dots" id="asaas-carousel-dots"></div>
+      <button class="add-card-btn gallery-add-btn" onclick="addGalleryItem()" id="asaas-gallery-add">+ إضافة صورة</button>
     </div>
   </div>
 
@@ -1610,74 +1600,90 @@ function renderPortfolio(lang){
   });
 }
 
-/* ===== ASAAS IMAGE GALLERY / CAROUSEL ===== */
+/* ===== ASAAS IMAGE GALLERY / CAROUSEL (single large auto-rotating stage) ===== */
+let asaasActiveIndex = 0;
+let asaasAutoTimer = null;
+
 function renderAsaasGallery(lang){
-  const track = document.getElementById('asaas-carousel');
+  const stage = document.getElementById('asaas-stage');
   const dotsWrap = document.getElementById('asaas-carousel-dots');
   const wrap = document.getElementById('asaas-gallery-wrap');
-  if(!track) return;
-  track.innerHTML = state.asaasGallery.map(g=>{
-    const inner = g.image
+  const captionEl = document.getElementById('asaas-gallery-caption');
+  if(!stage) return;
+
+  const items = state.asaasGallery;
+  if(asaasActiveIndex >= items.length) asaasActiveIndex = 0;
+  if(asaasActiveIndex < 0) asaasActiveIndex = 0;
+
+  stage.querySelectorAll('.carousel-slide').forEach(el=>el.remove());
+  const arrowRef = stage.querySelector('.carousel-arrow');
+  items.forEach((g,i)=>{
+    const slide = document.createElement('div');
+    slide.className = 'carousel-slide' + (i===asaasActiveIndex ? ' active' : '');
+    slide.innerHTML = g.image
       ? `<img src="${g.image}" class="carousel-slide-img" alt="">`
       : `<div class="carousel-slide-icon">${g.icon || '🖼️'}</div>`;
-    return `
-    <div class="carousel-slide">
-      <button class="card-delete-btn" onclick="deleteGalleryItem('${g.id}')" title="${currentLang==='ar'?'حذف الصورة':'Delete image'}">✕</button>
-      <div class="carousel-slide-media">
-        ${inner}
-        <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="changeImage('gallery-${g.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
-      </div>
-      <p class="carousel-caption" contenteditable="${editMode}" data-gl-id="${g.id}">${lang==='ar'?g.captionAr:g.captionEn}</p>
-    </div>`;
-  }).join('') + `<div class="carousel-slide carousel-add-slide"><button class="add-card-btn" onclick="addGalleryItem()">+ ${currentLang==='ar'?'إضافة صورة':'Add image'}</button></div>`;
+    if(i===asaasActiveIndex){
+      const badge = document.createElement('div');
+      badge.className = 'img-edit-badge';
+      badge.style.bottom = '12px'; badge.style.insetInlineEnd = '12px';
+      badge.title = currentLang==='ar' ? 'تغيير الصورة' : 'Change image';
+      badge.textContent = '🖼️';
+      badge.onclick = ()=>changeImage('gallery-'+g.id);
+      slide.appendChild(badge);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'card-delete-btn';
+      delBtn.title = currentLang==='ar' ? 'حذف الصورة' : 'Delete image';
+      delBtn.textContent = '✕';
+      delBtn.onclick = ()=>deleteGalleryItem(g.id);
+      slide.appendChild(delBtn);
+    }
+    stage.insertBefore(slide, arrowRef);
+  });
 
   if(dotsWrap){
-    dotsWrap.innerHTML = state.asaasGallery.map((g,i)=>`<button class="carousel-dot" onclick="carouselGoTo(${i})" aria-label="${i+1}"></button>`).join('');
+    dotsWrap.innerHTML = items.map((g,i)=>`<button class="carousel-dot ${i===asaasActiveIndex?'active':''}" onclick="carouselGoTo(${i})" aria-label="${i+1}"></button>`).join('');
   }
-  if(wrap) wrap.classList.toggle('has-slides', state.asaasGallery.length > 0);
-  updateCarouselDots();
+  if(captionEl){
+    const active = items[asaasActiveIndex];
+    captionEl.setAttribute('contenteditable', editMode ? 'true' : 'false');
+    if(active) captionEl.setAttribute('data-gl-id', active.id); else captionEl.removeAttribute('data-gl-id');
+    if(document.activeElement !== captionEl){
+      captionEl.textContent = active ? (lang==='ar'?active.captionAr:active.captionEn) : '';
+    }
+  }
+  if(wrap) wrap.classList.toggle('has-slides', items.length > 0);
+
+  restartAutoRotate();
 }
 
-function getCarouselSlides(){
-  const track = document.getElementById('asaas-carousel');
-  return track ? Array.from(track.querySelectorAll('.carousel-slide:not(.carousel-add-slide)')) : [];
+function restartAutoRotate(){
+  if(asaasAutoTimer){ clearInterval(asaasAutoTimer); asaasAutoTimer = null; }
+  if(editMode || state.asaasGallery.length <= 1) return;
+  asaasAutoTimer = setInterval(()=>{
+    asaasActiveIndex = (asaasActiveIndex + 1) % state.asaasGallery.length;
+    renderAsaasGallery(currentLang);
+  }, 3000);
 }
-function getCurrentSlideIndex(){
-  const track = document.getElementById('asaas-carousel');
-  const slides = getCarouselSlides();
-  if(!track || !slides.length) return 0;
-  const trackRect = track.getBoundingClientRect();
-  let closest = 0, min = Infinity;
-  slides.forEach((s,i)=>{
-    const d = Math.abs(s.getBoundingClientRect().left - trackRect.left);
-    if(d < min){ min = d; closest = i; }
-  });
-  return closest;
+function pauseAutoRotate(){
+  if(asaasAutoTimer){ clearInterval(asaasAutoTimer); asaasAutoTimer = null; }
 }
+
 function carouselMove(dir){
-  const slides = getCarouselSlides();
-  if(!slides.length) return;
-  const idx = Math.max(0, Math.min(slides.length-1, getCurrentSlideIndex() + dir));
-  slides[idx].scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
+  if(!state.asaasGallery.length) return;
+  asaasActiveIndex = (asaasActiveIndex + dir + state.asaasGallery.length) % state.asaasGallery.length;
+  renderAsaasGallery(currentLang);
 }
 function carouselGoTo(i){
-  const slides = getCarouselSlides();
-  if(slides[i]) slides[i].scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
-}
-function updateCarouselDots(){
-  const idx = getCurrentSlideIndex();
-  document.querySelectorAll('#asaas-carousel-dots .carousel-dot').forEach((d,i)=>{
-    d.classList.toggle('active', i===idx);
-  });
+  if(i < 0 || i >= state.asaasGallery.length) return;
+  asaasActiveIndex = i;
+  renderAsaasGallery(currentLang);
 }
 function initCarousel(){
-  const track = document.getElementById('asaas-carousel');
-  if(!track) return;
-  let raf = null;
-  track.addEventListener('scroll', ()=>{
-    if(raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(updateCarouselDots);
-  });
+  const stage = document.getElementById('asaas-stage');
+  if(!stage) return;
+  stage.addEventListener('mouseenter', pauseAutoRotate);
+  stage.addEventListener('mouseleave', restartAutoRotate);
 }
 function addGalleryItem(){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
@@ -1790,6 +1796,7 @@ function updateEditChrome(){
   document.getElementById('featured-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
   document.getElementById('carousel-prev-title').title = currentLang==='ar' ? 'السابق' : 'Previous';
   document.getElementById('carousel-next-title').title = currentLang==='ar' ? 'التالي' : 'Next';
+  document.getElementById('asaas-gallery-add').textContent = currentLang==='ar' ? '+ إضافة صورة' : '+ Add image';
   document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'جارِ تحميل المحتوى...' : 'Loading content...';
   Object.keys(SECTION_LABELS).forEach(id=>{
     const btn = document.getElementById('del-'+id);
