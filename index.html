@@ -430,6 +430,23 @@ body.edit-mode .edit-bar{display:block;}
   opacity:.4;
   cursor:not-allowed;
 }
+.upload-toast{
+  display:none;
+  position:fixed;
+  bottom:26px;
+  left:50%;
+  transform:translateX(-50%) translateY(0);
+  z-index:2000;
+  background:var(--dark);
+  color:var(--white);
+  font-size:13px;
+  font-weight:700;
+  padding:10px 22px;
+  border-radius:30px;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+  white-space:nowrap;
+}
+.upload-toast.show{display:block;}
 body.edit-mode header{top:38px;}
 body.edit-mode .hidden-sections-panel{bottom:20px;}
 
@@ -1108,6 +1125,7 @@ footer{
 </div>
 
 <input type="file" id="file-input" accept="image/*" style="display:none;">
+<div class="upload-toast" id="upload-toast"></div>
 
 <!-- ============ FIREBASE (CDN, ES Modules — no npm) ============
      This whole application script is now type="module" so it can use
@@ -1874,40 +1892,118 @@ document.addEventListener('focusout', function(e){
 }, true);
 
 /* ===== IMAGES (stored as base64 data URLs — keep photos reasonably small,
-   Firestore documents are capped at 1MB) ===== */
+   Firestore documents are capped at 1MB) =====
+   Uploaded PNG/JPG images are compressed client-side (resized only if needed,
+   re-encoded as WebP at ~0.8 quality) before being saved, so the ~700KB
+   limit is rarely hit in practice. */
+const MAX_IMAGE_BYTES = 900000; // ~ dataURL character budget, roughly 700KB binary once base64 overhead is factored out
+const COMPRESS_QUALITY = 0.8;
+const COMPRESS_DIM_STEPS = [1600, 1280, 1024, 800, 600]; // longest-edge px, only used if the source is larger
+
+function showUploadToast(msg, autoHideMs){
+  const el = document.getElementById('upload-toast');
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  if(el._hideTimer) clearTimeout(el._hideTimer);
+  if(autoHideMs){
+    el._hideTimer = setTimeout(()=>{ el.classList.remove('show'); }, autoHideMs);
+  }
+}
+function hideUploadToast(){
+  const el = document.getElementById('upload-toast');
+  if(!el) return;
+  if(el._hideTimer) clearTimeout(el._hideTimer);
+  el.classList.remove('show');
+}
+
+function loadImageEl(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = (err)=>{ URL.revokeObjectURL(url); reject(err); };
+    img.src = url;
+  });
+}
+
+/* Draws the image onto a canvas, scaling down only if it exceeds maxDim on
+   its longest edge (never upscales), then encodes as WebP. Falls back to
+   JPEG if the browser can't encode WebP. */
+function canvasEncode(img, maxDim, quality){
+  const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.max(1, Math.round(img.naturalWidth * scale));
+  const h = Math.max(1, Math.round(img.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  let dataUrl = canvas.toDataURL('image/webp', quality);
+  if(!dataUrl.startsWith('data:image/webp')){
+    dataUrl = canvas.toDataURL('image/jpeg', quality); // WebP encoding unsupported in this browser
+  }
+  return dataUrl;
+}
+
+/* Compresses a File down to a data URL under MAX_IMAGE_BYTES, trying
+   progressively smaller dimensions only if needed. Returns the best
+   result even if the target size couldn't be reached. */
+async function compressImage(file){
+  const img = await loadImageEl(file);
+  let best = null;
+  for(const maxDim of COMPRESS_DIM_STEPS){
+    const dataUrl = canvasEncode(img, maxDim, COMPRESS_QUALITY);
+    best = { dataUrl, sizeKB: Math.round(dataUrl.length * 0.75 / 1024) };
+    if(dataUrl.length <= MAX_IMAGE_BYTES) break;
+  }
+  return best;
+}
+
+function applyUploadedImage(key, dataUrl){
+  if(key === 'hero'){
+    state.heroImage = dataUrl;
+    saveContent({heroImage: dataUrl});
+  } else if(key === 'featured'){
+    state.featuredImage = dataUrl;
+    saveContent({featuredImage: dataUrl});
+  } else if(key.startsWith('portfolio-')){
+    updateDoc(doc(portfolioCol, key.slice('portfolio-'.length)), {image: dataUrl}).catch(err=>console.error(err));
+  } else if(key.startsWith('gallery-')){
+    updateDoc(doc(galleryCol, key.slice('gallery-'.length)), {image: dataUrl}).catch(err=>console.error(err));
+  }
+}
+
 function changeImage(key){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   pendingImageKey = key;
   document.getElementById('file-input').click();
 }
-document.getElementById('file-input').addEventListener('change', function(e){
+document.getElementById('file-input').addEventListener('change', async function(e){
   const file = e.target.files[0];
-  if(!file || !pendingImageKey) return;
-  const reader = new FileReader();
-  reader.onload = function(ev){
-    const dataUrl = ev.target.result;
-    if(dataUrl.length > 900000){
-      alert(currentLang==='ar' ? 'الصورة كبيرة جدًا. الرجاء استخدام صورة أصغر (أقل من ~700 كيلوبايت).' : 'Image is too large. Please use a smaller image (under ~700KB).');
+  const key = pendingImageKey;
+  if(!file || !key){ pendingImageKey = null; e.target.value=''; return; }
+
+  showUploadToast(currentLang==='ar' ? 'جارِ ضغط الصورة...' : 'Compressing image...');
+  try{
+    const { dataUrl, sizeKB } = await compressImage(file);
+    if(dataUrl.length > MAX_IMAGE_BYTES){
+      hideUploadToast();
+      alert(currentLang==='ar'
+        ? `الصورة ما زالت كبيرة حتى بعد الضغط (~${sizeKB} كيلوبايت). جرّب صورة أبسط أو أصغر أبعادًا.`
+        : `The image is still too large even after compression (~${sizeKB}KB). Try a simpler or smaller image.`);
       pendingImageKey = null; e.target.value=''; return;
     }
+    showUploadToast(currentLang==='ar' ? `الحجم بعد الضغط: ~${sizeKB} كيلوبايت` : `Compressed size: ~${sizeKB}KB`, 2500);
     pushUndoSnapshot();
-    if(pendingImageKey === 'hero'){
-      state.heroImage = dataUrl;
-      saveContent({heroImage: dataUrl});
-    } else if(pendingImageKey === 'featured'){
-      state.featuredImage = dataUrl;
-      saveContent({featuredImage: dataUrl});
-    } else if(pendingImageKey.startsWith('portfolio-')){
-      const id = pendingImageKey.slice('portfolio-'.length);
-      updateDoc(doc(portfolioCol, id), {image: dataUrl}).catch(err=>console.error(err));
-    } else if(pendingImageKey.startsWith('gallery-')){
-      const id = pendingImageKey.slice('gallery-'.length);
-      updateDoc(doc(galleryCol, id), {image: dataUrl}).catch(err=>console.error(err));
-    }
+    applyUploadedImage(key, dataUrl);
+  }catch(err){
+    console.error('Image compression failed:', err);
+    hideUploadToast();
+    alert(currentLang==='ar' ? 'تعذّر معالجة الصورة. جرّب ملفًا آخر.' : 'Could not process the image. Try a different file.');
+  }finally{
     pendingImageKey = null;
     e.target.value = '';
-  };
-  reader.readAsDataURL(file);
+  }
 });
 
 /* ===== IMAGE REPOSITIONING (drag to adjust object-position on cover images) ===== */
