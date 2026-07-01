@@ -1710,6 +1710,19 @@ function renderGallery(category, lang){
       delBtn.textContent = '✕';
       delBtn.onclick = ()=>deleteGalleryItem(category, g.id);
       slide.appendChild(delBtn);
+      const moveSelect = document.createElement('select');
+      moveSelect.className = 'port-move-select';
+      moveSelect.title = currentLang==='ar' ? 'نقل إلى قسم آخر' : 'Move to another section';
+      GALLERY_CATEGORIES.forEach(c=>{
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = categoryLabel(c, currentLang);
+        if(c === category) opt.selected = true;
+        moveSelect.appendChild(opt);
+      });
+      moveSelect.onclick = (e)=>e.stopPropagation();
+      moveSelect.onchange = (e)=>{ e.stopPropagation(); moveGalleryItem(category, g.id, e.target.value); };
+      slide.appendChild(moveSelect);
     }
     stage.insertBefore(slide, arrowRef);
   });
@@ -1794,6 +1807,28 @@ function deleteGalleryItem(category, id){
   if(!confirm(msg)) return;
   pushUndoSnapshot();
   deleteDoc(doc(col, id)).catch(err=>console.error(err));
+}
+
+async function moveGalleryItem(fromCat, id, toCat){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  if(!GALLERY_CATEGORIES.includes(toCat) || fromCat === toCat) return;
+  const fromCol = GALLERY_COLLECTIONS[fromCat];
+  const toCol = GALLERY_COLLECTIONS[toCat];
+  if(!fromCol || !toCol) return;
+  const item = (state.galleries[fromCat] || []).find(g=>g.id===id);
+  if(!item) return;
+  pushUndoSnapshot();
+  const data = Object.assign({}, item);
+  delete data.id;
+  const targetItems = state.galleries[toCat] || [];
+  data.order = targetItems.length ? Math.max(...targetItems.map(g=>g.order||0))+1 : 0;
+  try{
+    await addDoc(toCol, data);
+    await deleteDoc(doc(fromCol, id));
+    galleryActiveIndex[toCat] = targetItems.length;
+  }catch(err){
+    console.error('Move gallery item failed:', err);
+  }
 }
 
 function renderSkills(lang){
