@@ -265,6 +265,31 @@ body.edit-mode .section-delete-btn{display:flex;}
 body.edit-mode .img-edit-badge{display:flex;}
 .img-edit-badge:hover{transform:scale(1.08);}
 
+.img-move-hint{
+  display:none;
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(31,31,31,.85);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  padding:5px 13px;
+  border-radius:20px;
+  pointer-events:none;
+  z-index:25;
+  white-space:nowrap;
+  opacity:.85;
+  transition:opacity .2s ease;
+}
+body.edit-mode .img-move-hint{display:block;}
+body.edit-mode .img-draggable:hover ~ .img-move-hint{opacity:1;}
+
+.img-draggable{touch-action:none;-webkit-user-drag:none;user-select:none;}
+body.edit-mode .img-draggable{cursor:grab;}
+body.edit-mode .img-draggable.dragging-photo{cursor:grabbing;}
+
 .card-delete-btn{
   display:none;
   position:absolute;
@@ -847,8 +872,9 @@ footer{
   </div>
   <div class="hero-img-wrap">
     <div class="hero-img-bg"></div>
-    <img src="profile.jpg" alt="Al Muataz Al Saqri" class="hero-img" id="hero-photo">
+    <img src="profile.jpg" alt="Al Muataz Al Saqri" class="hero-img img-draggable" id="hero-photo" draggable="false">
     <div class="img-edit-badge hero-photo-badge" onclick="changeImage('hero')" title="تغيير الصورة" id="hero-photo-badge-title">🖼️</div>
+    <div class="img-move-hint" id="hero-move-hint">اسحب لتحريك الصورة</div>
   </div>
   </div>
   <button class="section-delete-btn" onclick="deleteSection('hero')" title="حذف قسم الرئيسية" id="del-hero">✕</button>
@@ -884,9 +910,10 @@ footer{
   <div class="featured-block" data-section-id="featured">
     <a href="https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p" target="_blank" rel="noopener" class="featured-work" id="featured-link">
       <div class="featured-img">
-        <img src="https://img.youtube.com/vi/5v79RTfReto/maxresdefault.jpg" alt="Featured Work" loading="lazy" id="featured-photo">
+        <img src="https://img.youtube.com/vi/5v79RTfReto/maxresdefault.jpg" alt="Featured Work" loading="lazy" id="featured-photo" class="img-draggable" draggable="false">
         <div class="featured-play">▶</div>
         <div class="img-edit-badge" style="top:14px;inset-inline-start:14px;" onclick="event.preventDefault();changeImage('featured')" title="تغيير الصورة">🖼️</div>
+        <div class="img-move-hint" id="featured-move-hint">اسحب لتحريك الصورة</div>
       </div>
       <div class="featured-caption">
         <span class="port-tag" data-edit-key="featured-tag" data-ar="أبرز عمل" data-en="Featured Work">أبرز عمل</span>
@@ -972,30 +999,42 @@ footer{
 
 <input type="file" id="file-input" accept="image/*" style="display:none;">
 
-<!-- ============ FIREBASE SDK (compat / script-tag method, no npm) ============ -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script>
-/* =========================================================================
-   FIREBASE CONFIG — project: my-portfolio-40700
-   ========================================================================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyCIWfzJyBmnXS0vlD_b-pXRLIkVW2Qn2A8",
-  authDomain: "my-portfolio-40700.firebaseapp.com",
-  projectId: "my-portfolio-40700",
-  storageBucket: "my-portfolio-40700.firebasestorage.app",
-  messagingSenderId: "1055600007192",
-  appId: "1:1055600007192:web:ee4a70a9cb0734eba4cb6d",
-  measurementId: "G-E17H77RK1N"
-};
+<!-- ============ FIREBASE (CDN, ES Modules — no npm) ============
+     This whole application script is now type="module" so it can use
+     Firebase's modular CDN imports directly, exactly like the snippet
+     you pasted. Because inline onclick="..." attributes in the HTML run
+     in the global scope (not the module scope), every function that is
+     called from an onclick attribute is explicitly attached to `window`
+     at the bottom of this script — see the "EXPOSE TO window" section. -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, onSnapshot,
+    collection, query, orderBy, limit, getDocs,
+    addDoc, updateDoc, deleteDoc, writeBatch
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-</script>
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCIWfzJyBmnXS0vlD_b-pXRLIkVW2Qn2A8",
+    authDomain: "my-portfolio-40700.firebaseapp.com",
+    projectId: "my-portfolio-40700",
+    storageBucket: "my-portfolio-40700.firebasestorage.app",
+    messagingSenderId: "1055600007192",
+    appId: "1:1055600007192:web:ee4a70a9cb0734eba4cb6d",
+    measurementId: "G-E17H77RK1N"
+  };
 
-<script>
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
 /* ===== DEFAULT DATA (used only to seed Firestore the very first time) ===== */
 const defaultStripItems = {
   ar:["كتابة المحتوى","بناء الاستراتيجيات","إدارة المنصات","الحملات الإبداعية","الهوية اللفظية"],
@@ -1059,9 +1098,9 @@ const SECTION_LABELS = {
    - portfolio/{docId}    : one document per portfolio card.
    - skills/{docId}       : one document per skill pill.
    ========================================================================= */
-const contentRef = db.collection('site').doc('content');
-const portfolioCol = db.collection('portfolio');
-const skillsCol = db.collection('skills');
+const contentRef = doc(db, 'site', 'content');
+const portfolioCol = collection(db, 'portfolio');
+const skillsCol = collection(db, 'skills');
 
 /* ===== STATE (mirrors Firestore, kept in memory for fast rendering) ===== */
 let state = {
@@ -1069,7 +1108,9 @@ let state = {
   aboutAr: defaultAboutAr,
   aboutEn: defaultAboutEn,
   heroImage: null,
+  heroImagePos: {x:50, y:15},
   featuredImage: null,
+  featuredImagePos: {x:50, y:50},
   featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
   hiddenSections: [],
   links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
@@ -1082,12 +1123,13 @@ let editMode = false;
 let pendingImageKey = null;
 let currentUser = null;
 let hasLoadedOnce = false;
+let draggingKey = null;
 let contentLoaded = false, portfolioLoaded = false, skillsLoaded = false;
 
-/* ===== FIRST-RUN SEEDING ===== */
+/* ===== FIRST-RUN SEEDING (if Firestore is empty, use current default content) ===== */
 async function seedIfEmpty(){
-  const contentSnap = await contentRef.get();
-  if(!contentSnap.exists){
+  const contentSnap = await getDoc(contentRef);
+  if(!contentSnap.exists()){
     const seedTexts = {};
     document.querySelectorAll('[data-edit-key]').forEach(el=>{
       const key = el.getAttribute('data-edit-key');
@@ -1097,12 +1139,14 @@ async function seedIfEmpty(){
         en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
       };
     });
-    await contentRef.set({
+    await setDoc(contentRef, {
       texts: seedTexts,
       aboutAr: defaultAboutAr,
       aboutEn: defaultAboutEn,
       heroImage: null,
+      heroImagePos: {x:50, y:15},
       featuredImage: null,
+      featuredImagePos: {x:50, y:50},
       featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
       hiddenSections: [],
       links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
@@ -1111,21 +1155,21 @@ async function seedIfEmpty(){
     });
   }
 
-  const portfolioSnap = await portfolioCol.limit(1).get();
+  const portfolioSnap = await getDocs(query(portfolioCol, limit(1)));
   if(portfolioSnap.empty){
-    const batch = db.batch();
+    const batch = writeBatch(db);
     defaultPortfolio.forEach(p=>{
-      const ref = portfolioCol.doc();
+      const ref = doc(portfolioCol);
       batch.set(ref, p);
     });
     await batch.commit();
   }
 
-  const skillsSnap = await skillsCol.limit(1).get();
+  const skillsSnap = await getDocs(query(skillsCol, limit(1)));
   if(skillsSnap.empty){
-    const batch = db.batch();
+    const batch = writeBatch(db);
     defaultSkills.ar.forEach((ar,i)=>{
-      const ref = skillsCol.doc();
+      const ref = doc(skillsCol);
       batch.set(ref, {ar, en: defaultSkills.en[i], order:i});
     });
     await batch.commit();
@@ -1140,16 +1184,18 @@ function maybeHideLoadOverlay(){
   }
 }
 
-/* ===== REALTIME LISTENERS ===== */
+/* ===== REALTIME LISTENERS — load the latest Firestore data automatically ===== */
 function attachListeners(){
-  contentRef.onSnapshot(snap=>{
-    if(snap.exists){
+  onSnapshot(contentRef, snap=>{
+    if(snap.exists()){
       const d = snap.data();
       state.texts = d.texts || {};
       state.aboutAr = d.aboutAr || defaultAboutAr;
       state.aboutEn = d.aboutEn || defaultAboutEn;
       state.heroImage = d.heroImage || null;
+      state.heroImagePos = d.heroImagePos || {x:50, y:15};
       state.featuredImage = d.featuredImage || null;
+      state.featuredImagePos = d.featuredImagePos || {x:50, y:50};
       state.featuredLink = d.featuredLink || state.featuredLink;
       state.hiddenSections = d.hiddenSections || [];
       state.links = d.links || state.links;
@@ -1163,15 +1209,15 @@ function attachListeners(){
     alert(currentLang==='ar' ? 'تعذّر الاتصال بقاعدة البيانات. تحقق من إعداد Firebase الخاص بك.' : 'Could not connect to the database. Check your Firebase setup.');
   });
 
-  portfolioCol.orderBy('order').onSnapshot(snap=>{
-    state.portfolio = snap.docs.map(doc=>Object.assign({id:doc.id}, doc.data()));
+  onSnapshot(query(portfolioCol, orderBy('order')), snap=>{
+    state.portfolio = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
     portfolioLoaded = true;
     renderPortfolio(currentLang);
     maybeHideLoadOverlay();
   }, err=>console.error('Firestore portfolio listener error:', err));
 
-  skillsCol.orderBy('order').onSnapshot(snap=>{
-    state.skills = snap.docs.map(doc=>Object.assign({id:doc.id}, doc.data()));
+  onSnapshot(query(skillsCol, orderBy('order')), snap=>{
+    state.skills = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
     skillsLoaded = true;
     renderSkills(currentLang);
     maybeHideLoadOverlay();
@@ -1180,7 +1226,7 @@ function attachListeners(){
 
 /* ===== WRITE HELPERS ===== */
 function saveContent(partial){
-  return contentRef.set(partial, {merge:true}).catch(err=>{
+  return setDoc(contentRef, partial, {merge:true}).catch(err=>{
     console.error('Save failed:', err);
     alert(currentLang==='ar' ? 'فشل الحفظ. تأكد أنك مسجّل الدخول كمشرف.' : 'Save failed. Make sure you are signed in as admin.');
   });
@@ -1201,28 +1247,29 @@ function resetAllData(){
         en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
       };
     });
-    await contentRef.set({
+    await setDoc(contentRef, {
       texts: seedTexts, aboutAr: defaultAboutAr, aboutEn: defaultAboutEn,
-      heroImage: null, featuredImage: null,
+      heroImage: null, heroImagePos: {x:50, y:15},
+      featuredImage: null, featuredImagePos: {x:50, y:50},
       featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
       hiddenSections: [], links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"},
       stripAr: defaultStripItems.ar, stripEn: defaultStripItems.en
     });
 
-    const oldPortfolio = await portfolioCol.get();
-    const delBatch1 = db.batch();
+    const oldPortfolio = await getDocs(portfolioCol);
+    const delBatch1 = writeBatch(db);
     oldPortfolio.docs.forEach(d=>delBatch1.delete(d.ref));
     await delBatch1.commit();
-    const addBatch1 = db.batch();
-    defaultPortfolio.forEach(p=>addBatch1.set(portfolioCol.doc(), p));
+    const addBatch1 = writeBatch(db);
+    defaultPortfolio.forEach(p=>addBatch1.set(doc(portfolioCol), p));
     await addBatch1.commit();
 
-    const oldSkills = await skillsCol.get();
-    const delBatch2 = db.batch();
+    const oldSkills = await getDocs(skillsCol);
+    const delBatch2 = writeBatch(db);
     oldSkills.docs.forEach(d=>delBatch2.delete(d.ref));
     await delBatch2.commit();
-    const addBatch2 = db.batch();
-    defaultSkills.ar.forEach((ar,i)=>addBatch2.set(skillsCol.doc(), {ar, en:defaultSkills.en[i], order:i}));
+    const addBatch2 = writeBatch(db);
+    defaultSkills.ar.forEach((ar,i)=>addBatch2.set(doc(skillsCol), {ar, en:defaultSkills.en[i], order:i}));
     await addBatch2.commit();
   })();
 }
@@ -1303,6 +1350,12 @@ function applyStaticTexts(lang){
 function applyImages(){
   if(state.heroImage) document.getElementById('hero-photo').src = state.heroImage;
   if(state.featuredImage) document.getElementById('featured-photo').src = state.featuredImage;
+  if(!draggingKey){
+    const hp = state.heroImagePos || {x:50,y:15};
+    const fp = state.featuredImagePos || {x:50,y:50};
+    document.getElementById('hero-photo').style.objectPosition = hp.x+'% '+hp.y+'%';
+    document.getElementById('featured-photo').style.objectPosition = fp.x+'% '+fp.y+'%';
+  }
   document.getElementById('featured-link').href = state.featuredLink;
   document.getElementById('social-li').href = state.links.li || '#';
   document.getElementById('social-ig').href = state.links.ig || '#';
@@ -1344,6 +1397,8 @@ function updateEditChrome(){
   document.getElementById('strip-edit-title').title = currentLang==='ar' ? 'تعديل الشريط' : 'Edit strip';
   document.getElementById('featured-link-label').textContent = currentLang==='ar' ? 'تعديل رابط الفيديو' : 'Edit video link';
   document.getElementById('hero-photo-badge-title').title = currentLang==='ar' ? 'تغيير الصورة' : 'Change photo';
+  document.getElementById('hero-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
+  document.getElementById('featured-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
   document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'جارِ تحميل المحتوى...' : 'Loading content...';
   Object.keys(SECTION_LABELS).forEach(id=>{
     const btn = document.getElementById('del-'+id);
@@ -1378,7 +1433,7 @@ function setLang(lang){
 }
 
 /* ===== AUTH / EDIT MODE (public = read-only, admin = signs in to edit) ===== */
-auth.onAuthStateChanged(user=>{
+onAuthStateChanged(auth, user=>{
   currentUser = user;
   if(!user && editMode){
     editMode = false;
@@ -1410,7 +1465,7 @@ function showLoginPrompt(){
   if(!email) return;
   const password = prompt(currentLang==='ar' ? 'كلمة المرور:' : 'Password:');
   if(!password) return;
-  auth.signInWithEmailAndPassword(email.trim(), password)
+  signInWithEmailAndPassword(auth, email.trim(), password)
     .then(()=>{
       editMode = true;
       document.body.classList.add('edit-mode');
@@ -1423,7 +1478,7 @@ function showLoginPrompt(){
 }
 
 function doLogout(){
-  auth.signOut().then(()=>{
+  signOut(auth).then(()=>{
     editMode = false;
     document.body.classList.remove('edit-mode');
     renderAll();
@@ -1448,11 +1503,11 @@ document.addEventListener('focusout', function(e){
     const map = {tag:'tag', title:'title', desc:'desc'};
     const suffix = currentLang==='ar' ? 'Ar' : 'En';
     const fieldName = map[field] + suffix;
-    portfolioCol.doc(id).update({[fieldName]: el.textContent}).catch(err=>console.error(err));
+    updateDoc(doc(portfolioCol, id), {[fieldName]: el.textContent}).catch(err=>console.error(err));
   } else if(el.hasAttribute('data-sk-id')){
     const id = el.getAttribute('data-sk-id');
     const fieldName = currentLang==='ar' ? 'ar' : 'en';
-    skillsCol.doc(id).update({[fieldName]: el.textContent}).catch(err=>console.error(err));
+    updateDoc(doc(skillsCol, id), {[fieldName]: el.textContent}).catch(err=>console.error(err));
   } else if(el.hasAttribute('data-about')){
     if(currentLang==='ar') state.aboutAr = el.innerHTML; else state.aboutEn = el.innerHTML;
     saveContent({aboutAr: state.aboutAr, aboutEn: state.aboutEn});
@@ -1484,13 +1539,74 @@ document.getElementById('file-input').addEventListener('change', function(e){
       saveContent({featuredImage: dataUrl});
     } else if(pendingImageKey.startsWith('portfolio-')){
       const id = pendingImageKey.slice('portfolio-'.length);
-      portfolioCol.doc(id).update({image: dataUrl}).catch(err=>console.error(err));
+      updateDoc(doc(portfolioCol, id), {image: dataUrl}).catch(err=>console.error(err));
     }
     pendingImageKey = null;
     e.target.value = '';
   };
   reader.readAsDataURL(file);
 });
+
+/* ===== IMAGE REPOSITIONING (drag to adjust object-position on cover images) ===== */
+function attachImageDrag(imgId, wrapEl, posKey, defaultPos){
+  const img = document.getElementById(imgId);
+  if(!img || !wrapEl) return;
+  let startX = 0, startY = 0, startPos = defaultPos;
+
+  function point(e){
+    if(e.touches && e.touches[0]) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+    return {x:e.clientX, y:e.clientY};
+  }
+
+  function onDown(e){
+    if(!editMode || !currentUser) return;
+    e.preventDefault();
+    const p = point(e);
+    startX = p.x; startY = p.y;
+    startPos = Object.assign({}, state[posKey] || defaultPos);
+    draggingKey = posKey;
+    img.classList.add('dragging-photo');
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('touchend', onUp);
+  }
+
+  function onMove(e){
+    if(draggingKey !== posKey) return;
+    e.preventDefault();
+    const p = point(e);
+    const rect = wrapEl.getBoundingClientRect();
+    if(!rect.width || !rect.height) return;
+    const dxPct = ((p.x - startX) / rect.width) * 100;
+    const dyPct = ((p.y - startY) / rect.height) * 100;
+    let nx = Math.max(0, Math.min(100, startPos.x - dxPct));
+    let ny = Math.max(0, Math.min(100, startPos.y - dyPct));
+    state[posKey] = {x:nx, y:ny};
+    img.style.objectPosition = nx+'% '+ny+'%';
+  }
+
+  function onUp(){
+    if(draggingKey !== posKey) return;
+    draggingKey = null;
+    img.classList.remove('dragging-photo');
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('touchmove', onMove);
+    window.removeEventListener('touchend', onUp);
+    const payload = {};
+    payload[posKey] = state[posKey];
+    saveContent(payload);
+  }
+
+  img.addEventListener('pointerdown', onDown);
+  img.addEventListener('touchstart', onDown, {passive:false});
+}
+
+function initImageDrag(){
+  attachImageDrag('hero-photo', document.querySelector('.hero-img-wrap'), 'heroImagePos', {x:50,y:15});
+  attachImageDrag('featured-photo', document.querySelector('.featured-img'), 'featuredImagePos', {x:50,y:50});
+}
 
 /* ===== SECTIONS ===== */
 function deleteSection(id){
@@ -1511,12 +1627,12 @@ function deletePortfolioItem(id){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const msg = currentLang==='ar' ? 'حذف هذا العمل من المعرض؟' : 'Delete this portfolio item?';
   if(!confirm(msg)) return;
-  portfolioCol.doc(id).delete().catch(err=>console.error(err));
+  deleteDoc(doc(portfolioCol, id)).catch(err=>console.error(err));
 }
 function addPortfolioItem(){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const nextOrder = state.portfolio.length ? Math.max(...state.portfolio.map(p=>p.order||0))+1 : 0;
-  portfolioCol.add({
+  addDoc(portfolioCol, {
     order: nextOrder,
     icon:"✨",
     tagAr:"وسم جديد", tagEn:"New Tag",
@@ -1531,17 +1647,17 @@ function editPortfolioLink(id){
   const msg = currentLang==='ar' ? 'أدخل رابط هذا العمل (اتركه فارغًا للإزالة):' : 'Enter the link for this item (leave empty to remove):';
   const url = prompt(msg, current);
   if(url === null) return;
-  portfolioCol.doc(id).update({link: url.trim() || null}).catch(err=>console.error(err));
+  updateDoc(doc(portfolioCol, id), {link: url.trim() || null}).catch(err=>console.error(err));
 }
 
 function deleteSkillItem(id){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
-  skillsCol.doc(id).delete().catch(err=>console.error(err));
+  deleteDoc(doc(skillsCol, id)).catch(err=>console.error(err));
 }
 function addSkillItem(){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const nextOrder = state.skills.length ? Math.max(...state.skills.map(s=>s.order||0))+1 : 0;
-  skillsCol.add({ar:"مهارة جديدة", en:"New Skill", order: nextOrder}).catch(err=>console.error(err));
+  addDoc(skillsCol, {ar:"مهارة جديدة", en:"New Skill", order: nextOrder}).catch(err=>console.error(err));
 }
 
 /* ===== STRIP / LINKS ===== */
@@ -1587,14 +1703,39 @@ document.querySelectorAll('.mobile-nav a').forEach(a=>{
   a.addEventListener('click', ()=>document.getElementById('mnav').classList.remove('open'));
 });
 
+/* ===== EXPOSE TO window =====
+   Required because this script is type="module" (module scope), while the
+   HTML uses inline onclick="..." attributes, which resolve function names
+   in the global (window) scope, not the module scope. Every function
+   referenced from an onclick attribute anywhere in the HTML — static or
+   generated inside a render function — must be listed here. */
+Object.assign(window, {
+  setLang,
+  toggleEditMode,
+  doLogout,
+  resetAllData,
+  deleteSection,
+  restoreSection,
+  editStrip,
+  editFeaturedLink,
+  handleSocialClick,
+  changeImage,
+  deletePortfolioItem,
+  addPortfolioItem,
+  editPortfolioLink,
+  deleteSkillItem,
+  addSkillItem
+});
+
 /* ===== INIT ===== */
 (async function init(){
   try{
     await seedIfEmpty();
   }catch(e){
-    console.error('Seeding failed (this is expected until you replace firebaseConfig and set Firestore rules):', e);
+    console.error('Seeding failed (check firebaseConfig and Firestore rules):', e);
   }
   attachListeners();
+  initImageDrag();
   setLang('ar');
 })();
 </script>
