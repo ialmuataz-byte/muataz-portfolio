@@ -16,6 +16,7 @@
   --card:#E2E2E2;
   --white:#FFFFFF;
   --border:#252525;
+  --danger:#FF4D4D;
   --font-ar:'Tajawal', sans-serif;
   --font-en:'Inter', sans-serif;
 }
@@ -41,7 +42,7 @@ a{text-decoration:none;color:inherit;}
 
 ul{list-style:none;}
 
-section{padding:90px 0;overflow:hidden;}
+section{padding:90px 0;overflow:hidden;position:relative;}
 
 .container{
   max-width:1240px;
@@ -159,7 +160,7 @@ header{
 .nav-right{
   display:flex;
   align-items:center;
-  gap:18px;
+  gap:14px;
 }
 
 .lang-toggle{
@@ -184,6 +185,224 @@ header{
 }
 
 .burger{display:none;font-size:26px;cursor:pointer;background:none;border:none;}
+
+/* ============ EDIT MODE UI ============ */
+.edit-toggle-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 18px;
+  border-radius:30px;
+  border:2px solid var(--border);
+  background:var(--white);
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  font-family:inherit;
+  color:var(--text);
+  transition:all .2s ease;
+}
+.edit-toggle-btn:hover{background:var(--yellow);}
+body.edit-mode .edit-toggle-btn{background:var(--dark);color:var(--white);border-color:var(--dark);}
+.edit-toggle-btn-mobile{width:100%;justify-content:center;margin-top:6px;}
+
+body.edit-mode{background:#FBF3D0;}
+
+[contenteditable="true"]{
+  cursor:text;
+  border-radius:4px;
+  outline:1.5px dashed transparent;
+  transition:outline-color .15s ease, background .15s ease;
+}
+body.edit-mode [contenteditable="true"]{
+  outline:1.5px dashed rgba(37,37,37,.35);
+  outline-offset:3px;
+}
+body.edit-mode [contenteditable="true"]:hover{outline-color:var(--dark);}
+body.edit-mode [contenteditable="true"]:focus{
+  outline:2px solid var(--dark);
+  background:rgba(255,212,0,.15);
+}
+
+.editable-section{position:relative;}
+
+.section-delete-btn{
+  display:none;
+  position:absolute;
+  top:18px;
+  inset-inline-end:18px;
+  z-index:60;
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--danger);
+  color:#fff;
+  border:2px solid var(--dark);
+  font-weight:900;
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+  box-shadow:2px 2px 0 var(--dark);
+}
+body.edit-mode .section-delete-btn{display:flex;}
+.section-delete-btn:hover{transform:scale(1.08);}
+
+.img-edit-badge{
+  display:none;
+  position:absolute;
+  width:38px;height:38px;
+  background:var(--yellow);
+  border:2px solid var(--border);
+  border-radius:50%;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  cursor:pointer;
+  z-index:30;
+  box-shadow:2px 2px 0 var(--dark);
+}
+body.edit-mode .img-edit-badge{display:flex;}
+.img-edit-badge:hover{transform:scale(1.08);}
+
+.card-delete-btn{
+  display:none;
+  position:absolute;
+  top:8px;
+  inset-inline-start:8px;
+  z-index:25;
+  width:26px;height:26px;
+  border-radius:50%;
+  background:var(--danger);
+  color:#fff;
+  border:1.5px solid var(--dark);
+  font-weight:900;
+  font-size:13px;
+  line-height:1;
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+}
+body.edit-mode .card-delete-btn{display:flex;}
+
+.link-edit-btn{
+  display:none;
+  align-items:center;
+  gap:4px;
+  margin-top:10px;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1.5px dashed var(--border);
+  background:transparent;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+  color:var(--text);
+}
+body.edit-mode .link-edit-btn{display:inline-flex;}
+.link-edit-btn:hover{background:var(--yellow);}
+
+.add-card-btn{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  min-height:170px;
+  border:2px dashed var(--border);
+  border-radius:20px;
+  background:transparent;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  font-family:inherit;
+  color:var(--muted);
+  gap:8px;
+}
+body.edit-mode .add-card-btn{display:flex;}
+.add-card-btn:hover{background:var(--white);color:var(--text);}
+
+.add-pill-btn{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  border:2px dashed var(--border);
+  border-radius:14px;
+  background:transparent;
+  padding:20px 16px;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  font-family:inherit;
+  color:var(--muted);
+}
+body.edit-mode .add-pill-btn{display:flex;}
+body.edit-mode .skill-pill{position:relative;}
+
+.hidden-sections-panel{
+  display:none;
+  position:fixed;
+  bottom:20px;
+  inset-inline-start:20px;
+  z-index:1500;
+  background:var(--dark);
+  color:var(--white);
+  border-radius:18px;
+  padding:16px 18px;
+  max-width:280px;
+  font-size:13px;
+  box-shadow:4px 4px 0 var(--yellow);
+}
+body.edit-mode .hidden-sections-panel.has-hidden{display:block;}
+.hidden-sections-panel h4{font-size:13px;margin-bottom:10px;font-weight:700;}
+.hidden-sections-panel ul{display:flex;flex-direction:column;gap:6px;margin-bottom:4px;}
+.hidden-sections-panel li{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:rgba(255,255,255,.08);
+  padding:6px 10px;
+  border-radius:10px;
+}
+.hidden-sections-panel button{
+  background:var(--yellow);
+  color:var(--dark);
+  border:none;
+  border-radius:16px;
+  padding:4px 10px;
+  font-weight:700;
+  font-size:11px;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+.edit-bar{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:1400;
+  background:var(--dark);
+  color:var(--white);
+  padding:9px 6%;
+  font-size:13px;
+  text-align:center;
+  font-weight:700;
+}
+body.edit-mode .edit-bar{display:block;}
+.edit-bar button{
+  background:var(--yellow);
+  color:var(--dark);
+  border:none;
+  border-radius:16px;
+  padding:4px 14px;
+  font-weight:700;
+  font-size:12px;
+  cursor:pointer;
+  font-family:inherit;
+  margin-inline-start:12px;
+}
+body.edit-mode header{top:38px;}
+body.edit-mode .hidden-sections-panel{bottom:20px;}
 
 /* ============ HERO ============ */
 .hero{
@@ -249,6 +468,10 @@ body.lang-ar .hero{direction:rtl;}
   border-radius:50% 50% 45% 45% / 55% 55% 45% 45%;
   border:4px solid var(--dark);
 }
+.hero-photo-badge{
+  bottom:8%;
+  inset-inline-end:4%;
+}
 
 /* ============ STRIP ============ */
 .strip{
@@ -259,6 +482,7 @@ body.lang-ar .hero{direction:rtl;}
   white-space:nowrap;
   font-weight:700;
   font-size:16px;
+  position:relative;
 }
 .strip-track{
   display:inline-flex;
@@ -275,6 +499,22 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   0%{transform:translateX(0);}
   100%{transform:translateX(50%);}
 }
+.strip-edit-btn{
+  display:none;
+  position:absolute;
+  top:50%;
+  inset-inline-end:18px;
+  transform:translateY(-50%);
+  z-index:40;
+  background:var(--yellow);
+  color:var(--dark);
+  border:2px solid var(--white);
+  border-radius:50%;
+  width:32px;height:32px;
+  font-size:14px;
+  cursor:pointer;
+}
+body.edit-mode .strip-edit-btn{display:flex;align-items:center;justify-content:center;}
 
 /* ============ SECTION HEADERS ============ */
 .section-head{
@@ -290,38 +530,6 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   font-size:17px;
 }
 
-/* ============ SERVICES ============ */
-.services-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:24px;
-}
-.service-card{
-  background:var(--white);
-  border:1.5px solid var(--border);
-  border-radius:18px;
-  padding:32px 26px;
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-.service-card:hover{
-  transform:translateY(-8px);
-  box-shadow:8px 8px 0 var(--yellow);
-}
-.service-num{
-  font-size:13px;
-  font-weight:700;
-  color:var(--muted);
-  margin-bottom:18px;
-}
-.service-card h3{
-  font-size:21px;
-  margin-bottom:12px;
-}
-.service-card p{
-  color:var(--muted);
-  font-size:15px;
-}
-
 /* ============ ABOUT ============ */
 .about{
   background:var(--dark);
@@ -330,6 +538,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   margin:0 6%;
   width:88%;
   padding:80px 7%;
+  position:relative;
 }
 .about .section-head p{color:#bdbdbd;}
 .about .section-head h2{color:var(--white);}
@@ -340,6 +549,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
 }
 .about-text p{margin-bottom:20px;}
 .about-text .underline-yellow::after{bottom:0;}
+body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
 
 /* ============ FEATURED WORK ============ */
 .featured-work{
@@ -389,6 +599,8 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
 .featured-caption{padding:26px;}
 .featured-caption h3{font-size:22px;margin:12px 0 8px;}
 .featured-caption p{color:var(--muted);font-size:14.5px;}
+.featured-block{position:relative;}
+.featured-block .section-delete-btn{top:0;inset-inline-end:0;}
 
 /* ============ PORTFOLIO ============ */
 .portfolio-grid{
@@ -405,6 +617,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   transition:transform .25s ease, box-shadow .25s ease;
   color:inherit;
   text-decoration:none;
+  position:relative;
 }
 .port-card:hover{
   transform:translateY(-6px);
@@ -418,6 +631,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   justify-content:center;
   font-size:46px;
   border-bottom:1.5px solid var(--border);
+  position:relative;
 }
 .port-thumb-logos{
   background:var(--white);
@@ -431,6 +645,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   height:auto;
   object-fit:contain;
 }
+.port-thumb-photo{width:100%;height:100%;object-fit:cover;}
 .port-body{padding:26px;}
 .port-tag{
   display:inline-block;
@@ -487,6 +702,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
   width:88%;
   padding:80px 7%;
   text-align:center;
+  position:relative;
 }
 .cta h2{
   font-size:clamp(28px,4vw,42px);
@@ -500,6 +716,7 @@ body.lang-ar .strip-track{animation:scrollstripRTL 26s linear infinite;}
 }
 .cta .btn-outline{color:var(--white);border-color:var(--white);}
 .cta .btn-outline:hover{background:var(--white);color:var(--dark);}
+.cta .section-delete-btn{top:24px;inset-inline-end:24px;}
 
 /* ============ FOOTER ============ */
 footer{
@@ -537,17 +754,17 @@ footer{
 @media(max-width:900px){
   .nav-links{display:none;}
   .burger{display:block;}
+  .edit-toggle-btn:not(.edit-toggle-btn-mobile){display:none;}
   .hero-inner{grid-template-columns:1fr;text-align:center;}
   .hero-img-wrap{order:-1;}
   .hero-btns{justify-content:center;}
   .tag-row{justify-content:center;}
-  .services-grid{grid-template-columns:repeat(2,1fr);}
   .portfolio-grid{grid-template-columns:1fr;}
   .skills-grid{grid-template-columns:repeat(2,1fr);}
   .about,.cta{width:90%;margin:0 5%;padding:50px 6%;}
+  .hidden-sections-panel{max-width:220px;font-size:12px;}
 }
 @media(max-width:560px){
-  .services-grid{grid-template-columns:1fr;}
   .skills-grid{grid-template-columns:1fr 1fr;}
   section{padding:60px 6%;}
 }
@@ -567,135 +784,156 @@ footer{
 </head>
 <body class="lang-ar">
 
+<div class="edit-bar" id="edit-bar">
+  <span id="edit-bar-text">وضع التعديل مفعّل — انقر أي نص لتحريره، أو استخدم أيقونات الصور والحذف</span>
+  <button onclick="resetAllData()" id="edit-bar-reset">إعادة تعيين الكل</button>
+  <button onclick="toggleEditMode()" id="edit-bar-close">إنهاء التعديل</button>
+</div>
+
 <header>
   <div class="nav-wrap">
-    <div class="logo" data-ar-html="المعتز<span>.</span>" data-en-html="Muataz<span>.</span>">المعتز<span>.</span></div>
+    <div class="logo" data-edit-key="logo" data-edit-type="html" data-ar-html="المعتز<span>.</span>" data-en-html="Muataz<span>.</span>">المعتز<span>.</span></div>
     <nav class="nav-links">
-      <a href="#hero" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
-      <a href="#about" data-ar="عني" data-en="About">عني</a>
-      <a href="#portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
-      <a href="#skills" data-ar="المهارات" data-en="Skills">المهارات</a>
-      <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
+      <a href="#hero" data-edit-key="nav-home" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+      <a href="#about" data-edit-key="nav-about" data-ar="عني" data-en="About">عني</a>
+      <a href="#portfolio" data-edit-key="nav-portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
+      <a href="#skills" data-edit-key="nav-skills" data-ar="المهارات" data-en="Skills">المهارات</a>
+      <a href="#contact" data-edit-key="nav-contact" data-ar="تواصل" data-en="Contact">تواصل</a>
     </nav>
     <div class="nav-right">
       <div class="lang-toggle">
         <button id="btn-ar" class="active" onclick="setLang('ar')">عربي</button>
         <button id="btn-en" onclick="setLang('en')">English</button>
       </div>
-      <a href="#contact" class="btn btn-primary" style="padding:10px 22px;" data-ar="لنتحدث" data-en="Let's Talk">لنتحدث</a>
+      <button class="edit-toggle-btn" onclick="toggleEditMode()">
+        <span>✎</span><span id="edit-toggle-label">تعديل الموقع</span>
+      </button>
+      <a href="#contact" class="btn btn-primary" style="padding:10px 22px;" data-edit-key="nav-cta-btn" data-ar="لنتحدث" data-en="Let's Talk">لنتحدث</a>
       <button class="burger" onclick="document.getElementById('mnav').classList.toggle('open')">☰</button>
     </div>
   </div>
   <div class="mobile-nav" id="mnav">
-    <a href="#hero" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
-    <a href="#about" data-ar="عني" data-en="About">عني</a>
-    <a href="#portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
-    <a href="#skills" data-ar="المهارات" data-en="Skills">المهارات</a>
-    <a href="#contact" data-ar="تواصل" data-en="Contact">تواصل</a>
+    <a href="#hero" data-edit-key="nav-home" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+    <a href="#about" data-edit-key="nav-about" data-ar="عني" data-en="About">عني</a>
+    <a href="#portfolio" data-edit-key="nav-portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
+    <a href="#skills" data-edit-key="nav-skills" data-ar="المهارات" data-en="Skills">المهارات</a>
+    <a href="#contact" data-edit-key="nav-contact" data-ar="تواصل" data-en="Contact">تواصل</a>
+    <button class="edit-toggle-btn edit-toggle-btn-mobile" onclick="toggleEditMode()">✎ <span id="edit-toggle-label-mobile">تعديل الموقع</span></button>
   </div>
 </header>
 
 <!-- ============ HERO ============ -->
-<section class="hero" id="hero">
+<section class="hero editable-section" id="hero" data-section-id="hero">
   <div class="container hero-inner">
   <div class="hero-text">
-    <p class="eyebrow" data-ar="كاتب محتوى إبداعي • مختص تسويق" data-en="Creative Content Writer • Marketing Specialist">كاتب محتوى إبداعي • مختص تسويق</p>
+    <p class="eyebrow" data-edit-key="hero-eyebrow" data-ar="كاتب محتوى إبداعي • مختص تسويق" data-en="Creative Content Writer • Marketing Specialist">كاتب محتوى إبداعي • مختص تسويق</p>
     <h1>
-      <span data-ar="مرحبًا، أنا المعتز الصقري." data-en="Hey, I'm Al Muataz.">مرحبًا، أنا المعتز الصقري.</span><br>
-      <span class="underline-yellow" data-ar="أحوّل الأفكار إلى محتوى، والمحتوى إلى أثر." data-en="I turn ideas into content, and content into impact.">أحوّل الأفكار إلى محتوى، والمحتوى إلى أثر.</span>
+      <span data-edit-key="hero-title-1" data-ar="مرحبًا، أنا المعتز الصقري." data-en="Hey, I'm Al Muataz.">مرحبًا، أنا المعتز الصقري.</span><br>
+      <span class="underline-yellow" data-edit-key="hero-title-2" data-ar="أحوّل الأفكار إلى محتوى، والمحتوى إلى أثر." data-en="I turn ideas into content, and content into impact.">أحوّل الأفكار إلى محتوى، والمحتوى إلى أثر.</span>
     </h1>
-    <p class="sub" data-ar="كاتب محتوى إبداعي ومختص تسويق أبني الرسائل، الحملات، والاستراتيجيات التي تمنح العلامات صوتًا واضحًا وحضورًا لا يُنسى." data-en="A creative content writer and marketing specialist building messages, campaigns, and strategies that give brands a clear voice and memorable presence.">كاتب محتوى إبداعي ومختص تسويق أبني الرسائل، الحملات، والاستراتيجيات التي تمنح العلامات صوتًا واضحًا وحضورًا لا يُنسى.</p>
-    <div class="tag-row" data-ar-html="✦ كتابة محتوى&nbsp; ✦ استراتيجيات تسويق&nbsp; ✦ حملات إبداعية&nbsp; ✦ إدارة منصات" data-en-html="✦ Content Writing&nbsp; ✦ Marketing Strategy&nbsp; ✦ Creative Campaigns&nbsp; ✦ Social Media">
+    <p class="sub" data-edit-key="hero-sub" data-ar="كاتب محتوى إبداعي ومختص تسويق أبني الرسائل، الحملات، والاستراتيجيات التي تمنح العلامات صوتًا واضحًا وحضورًا لا يُنسى." data-en="A creative content writer and marketing specialist building messages, campaigns, and strategies that give brands a clear voice and memorable presence.">كاتب محتوى إبداعي ومختص تسويق أبني الرسائل، الحملات، والاستراتيجيات التي تمنح العلامات صوتًا واضحًا وحضورًا لا يُنسى.</p>
+    <div class="tag-row" data-edit-key="hero-tags" data-edit-type="html" data-ar-html="✦ كتابة محتوى&nbsp; ✦ استراتيجيات تسويق&nbsp; ✦ حملات إبداعية&nbsp; ✦ إدارة منصات" data-en-html="✦ Content Writing&nbsp; ✦ Marketing Strategy&nbsp; ✦ Creative Campaigns&nbsp; ✦ Social Media">
       ✦ كتابة محتوى&nbsp; ✦ استراتيجيات تسويق&nbsp; ✦ حملات إبداعية&nbsp; ✦ إدارة منصات
     </div>
     <div class="hero-btns">
-      <a href="#portfolio" class="btn btn-primary" data-ar="شاهد أعمالي" data-en="View My Work">شاهد أعمالي</a>
-      <a href="#contact" class="btn btn-outline" data-ar="تواصل معي" data-en="Let's Talk">تواصل معي</a>
+      <a href="#portfolio" class="btn btn-primary" data-edit-key="hero-btn-primary" data-ar="شاهد أعمالي" data-en="View My Work">شاهد أعمالي</a>
+      <a href="#contact" class="btn btn-outline" data-edit-key="hero-btn-outline" data-ar="تواصل معي" data-en="Let's Talk">تواصل معي</a>
     </div>
   </div>
   <div class="hero-img-wrap">
     <div class="hero-img-bg"></div>
-    <!-- استبدل الصورة هنا إذا رغبت بصورة أخرى / Replace with another photo if needed -->
-    <img src="profile.jpg" alt="Al Muataz Al Saqri" class="hero-img">
+    <img src="profile.jpg" alt="Al Muataz Al Saqri" class="hero-img" id="hero-photo">
+    <div class="img-edit-badge hero-photo-badge" onclick="changeImage('hero')" title="تغيير الصورة" id="hero-photo-badge-title">🖼️</div>
   </div>
   </div>
+  <button class="section-delete-btn" onclick="deleteSection('hero')" title="حذف قسم الرئيسية" id="del-hero">✕</button>
 </section>
 
 <!-- ============ SPECIALIZATION STRIP ============ -->
-<div class="strip">
+<div class="strip editable-section" data-section-id="strip">
   <div class="strip-track" id="strip-track"></div>
+  <button class="strip-edit-btn" onclick="editStrip()" title="تعديل الشريط" id="strip-edit-title">✎</button>
+  <button class="section-delete-btn" onclick="deleteSection('strip')" title="حذف الشريط" id="del-strip">✕</button>
 </div>
 
-
-
 <!-- ============ ABOUT ============ -->
-<section id="about">
+<section id="about" class="editable-section" data-section-id="about">
   <div class="about">
     <div class="section-head">
-      <p class="eyebrow" data-ar="قصتي" data-en="My Story">قصتي</p>
-      <h2 data-ar="عني." data-en="About Me.">عني.</h2>
+      <p class="eyebrow" data-edit-key="about-eyebrow" data-ar="قصتي" data-en="My Story">قصتي</p>
+      <h2 data-edit-key="about-heading" data-ar="عني." data-en="About Me.">عني.</h2>
     </div>
     <div class="about-text" id="about-text"></div>
+    <button class="section-delete-btn" onclick="deleteSection('about')" title="حذف قسم عني" id="del-about">✕</button>
   </div>
 </section>
 
 <!-- ============ PORTFOLIO ============ -->
-<section id="portfolio">
+<section id="portfolio" class="editable-section" data-section-id="portfolio">
   <div class="container">
   <div class="section-head">
-    <p class="eyebrow" data-ar="نماذج من العمل" data-en="Selected Highlights">نماذج من العمل</p>
-    <h2 data-ar="أعمال مختارة." data-en="Selected Work.">أعمال مختارة.</h2>
+    <p class="eyebrow" data-edit-key="portfolio-eyebrow" data-ar="نماذج من العمل" data-en="Selected Highlights">نماذج من العمل</p>
+    <h2 data-edit-key="portfolio-heading" data-ar="أعمال مختارة." data-en="Selected Work.">أعمال مختارة.</h2>
   </div>
 
-  <a href="https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p" target="_blank" rel="noopener" class="featured-work">
-    <div class="featured-img">
-      <img src="https://img.youtube.com/vi/5v79RTfReto/maxresdefault.jpg" alt="Featured Work" loading="lazy">
-      <div class="featured-play">▶</div>
-    </div>
-    <div class="featured-caption">
-      <span class="port-tag" data-ar="أبرز عمل" data-en="Featured Work">أبرز عمل</span>
-      <h3 data-ar="عشقناك كالمستحيل — أواصر" data-en="Ashaqnak Kal Mustaheel — Awasr">عشقناك كالمستحيل — أواصر</h3>
-      <p data-ar="شاهد العمل الوطني الكامل على يوتيوب" data-en="Watch the full national piece on YouTube">شاهد العمل الوطني الكامل على يوتيوب</p>
-    </div>
-  </a>
+  <div class="featured-block" data-section-id="featured">
+    <a href="https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p" target="_blank" rel="noopener" class="featured-work" id="featured-link">
+      <div class="featured-img">
+        <img src="https://img.youtube.com/vi/5v79RTfReto/maxresdefault.jpg" alt="Featured Work" loading="lazy" id="featured-photo">
+        <div class="featured-play">▶</div>
+        <div class="img-edit-badge" style="top:14px;inset-inline-start:14px;" onclick="event.preventDefault();changeImage('featured')" title="تغيير الصورة">🖼️</div>
+      </div>
+      <div class="featured-caption">
+        <span class="port-tag" data-edit-key="featured-tag" data-ar="أبرز عمل" data-en="Featured Work">أبرز عمل</span>
+        <h3 data-edit-key="featured-title" data-ar="عشقناك كالمستحيل — أواصر" data-en="Ashaqnak Kal Mustaheel — Awasr">عشقناك كالمستحيل — أواصر</h3>
+        <p data-edit-key="featured-desc" data-ar="شاهد العمل الوطني الكامل على يوتيوب" data-en="Watch the full national piece on YouTube">شاهد العمل الوطني الكامل على يوتيوب</p>
+      </div>
+    </a>
+    <button class="link-edit-btn" style="margin:0 0 30px;" onclick="editFeaturedLink()" id="featured-link-btn">🔗 <span id="featured-link-label">تعديل رابط الفيديو</span></button>
+    <button class="section-delete-btn" style="top:0;inset-inline-end:0;" onclick="deleteSection('featured')" title="حذف العمل المميز" id="del-featured">✕</button>
+  </div>
 
   <div class="portfolio-grid" id="portfolio-grid"></div>
+  <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
   </div>
 </section>
 
 <!-- ============ SKILLS ============ -->
-<section id="skills">
+<section id="skills" class="editable-section" data-section-id="skills">
   <div class="container">
   <div class="section-head">
-    <p class="eyebrow" data-ar="القدرات" data-en="Capabilities">القدرات</p>
-    <h2 data-ar="المهارات." data-en="Skills.">المهارات.</h2>
+    <p class="eyebrow" data-edit-key="skills-eyebrow" data-ar="القدرات" data-en="Capabilities">القدرات</p>
+    <h2 data-edit-key="skills-heading" data-ar="المهارات." data-en="Skills.">المهارات.</h2>
   </div>
   <div class="skills-grid" id="skills-grid"></div>
+  <button class="section-delete-btn" onclick="deleteSection('skills')" title="حذف قسم المهارات" id="del-skills">✕</button>
   </div>
 </section>
 
 <!-- ============ TESTIMONIALS ============ -->
-<section id="testimonials">
+<section id="testimonials" class="editable-section" data-section-id="testimonials">
   <div class="container">
   <div class="section-head">
-    <p class="eyebrow" data-ar="آراء" data-en="Feedback">آراء</p>
-    <h2 data-ar="شهادات." data-en="Testimonials.">شهادات.</h2>
+    <p class="eyebrow" data-edit-key="testimonials-eyebrow" data-ar="آراء" data-en="Feedback">آراء</p>
+    <h2 data-edit-key="testimonials-heading" data-ar="شهادات." data-en="Testimonials.">شهادات.</h2>
   </div>
-  <div class="testimonial-box" data-ar="مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة." data-en="Placeholder for client testimonials and partner feedback.">
+  <div class="testimonial-box" id="testimonial-text" data-edit-key="testimonial-text" data-ar="مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة." data-en="Placeholder for client testimonials and partner feedback.">
     مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة.
   </div>
+  <button class="section-delete-btn" onclick="deleteSection('testimonials')" title="حذف قسم الشهادات" id="del-testimonials">✕</button>
   </div>
 </section>
 
 <!-- ============ CTA ============ -->
-<section>
+<section class="editable-section" data-section-id="cta">
   <div class="container">
   <div class="cta">
-    <h2 data-ar="لديك مشروع يحتاج إلى فكرة؟ دعنا نحوله إلى محتوى يُتذكر." data-en="Have a project that needs a strong idea? Let's turn it into content people remember.">لديك مشروع يحتاج إلى فكرة؟ دعنا نحوله إلى محتوى يُتذكر.</h2>
+    <h2 data-edit-key="cta-heading" data-ar="لديك مشروع يحتاج إلى فكرة؟ دعنا نحوله إلى محتوى يُتذكر." data-en="Have a project that needs a strong idea? Let's turn it into content people remember.">لديك مشروع يحتاج إلى فكرة؟ دعنا نحوله إلى محتوى يُتذكر.</h2>
     <div class="cta-btns">
-      <a href="#contact" class="btn btn-primary" data-ar="تواصل معي" data-en="Let's Talk">تواصل معي</a>
-      <a href="#portfolio" class="btn btn-outline" data-ar="شاهد الأعمال" data-en="View Work">شاهد الأعمال</a>
+      <a href="#contact" class="btn btn-primary" data-edit-key="cta-btn-primary" data-ar="تواصل معي" data-en="Let's Talk">تواصل معي</a>
+      <a href="#portfolio" class="btn btn-outline" data-edit-key="cta-btn-outline" data-ar="شاهد الأعمال" data-en="View Work">شاهد الأعمال</a>
     </div>
+    <button class="section-delete-btn" onclick="deleteSection('cta')" title="حذف قسم الدعوة للتواصل" id="del-cta">✕</button>
   </div>
   </div>
 </section>
@@ -705,35 +943,38 @@ footer{
   <div class="container">
   <div class="footer-grid">
     <div>
-      <div class="footer-name" data-ar="المعتز الصقري" data-en="Al Muataz Al Saqri">المعتز الصقري</div>
-      <div class="footer-role" data-ar="كاتب محتوى إبداعي | مختص تسويق | بناء استراتيجيات محتوى" data-en="Creative Content Writer | Marketing Specialist | Content Strategy">كاتب محتوى إبداعي | مختص تسويق | بناء استراتيجيات محتوى</div>
+      <div class="footer-name" data-edit-key="footer-name" data-ar="المعتز الصقري" data-en="Al Muataz Al Saqri">المعتز الصقري</div>
+      <div class="footer-role" data-edit-key="footer-role" data-ar="كاتب محتوى إبداعي | مختص تسويق | بناء استراتيجيات محتوى" data-en="Creative Content Writer | Marketing Specialist | Content Strategy">كاتب محتوى إبداعي | مختص تسويق | بناء استراتيجيات محتوى</div>
     </div>
     <div class="footer-contact">
-      <div>📱 +968 95816223</div>
-      <!-- استبدل بالبريد الإلكتروني الفعلي / Replace with actual email -->
-      <div data-ar="✉️ أضف البريد الإلكتروني هنا" data-en="✉️ Add email here">✉️ أضف البريد الإلكتروني هنا</div>
+      <div data-edit-key="footer-phone" data-ar="📱 +968 95816223" data-en="📱 +968 95816223">📱 +968 95816223</div>
+      <div data-edit-key="footer-email" data-ar="✉️ أضف البريد الإلكتروني هنا" data-en="✉️ Add email here">✉️ أضف البريد الإلكتروني هنا</div>
     </div>
     <div class="footer-social">
-      <!-- استبدل بروابط فعلية / Replace with actual links -->
-      <a href="#" title="LinkedIn">in</a>
-      <a href="#" title="Instagram">IG</a>
-      <a href="https://wa.me/96895816223" title="WhatsApp">WA</a>
+      <a href="#" title="LinkedIn" id="social-li" onclick="return handleSocialClick(event,'li')">in</a>
+      <a href="#" title="Instagram" id="social-ig" onclick="return handleSocialClick(event,'ig')">IG</a>
+      <a href="https://wa.me/96895816223" title="WhatsApp" id="social-wa" onclick="return handleSocialClick(event,'wa')">WA</a>
     </div>
   </div>
-  <div class="footer-bottom" data-ar="© 2026 المعتز الصقري. جميع الحقوق محفوظة." data-en="© 2026 Al Muataz Al Saqri. All rights reserved.">© 2026 المعتز الصقري. جميع الحقوق محفوظة.</div>
+  <div class="footer-bottom" data-edit-key="footer-copyright" data-ar="© 2026 المعتز الصقري. جميع الحقوق محفوظة." data-en="© 2026 Al Muataz Al Saqri. All rights reserved.">© 2026 المعتز الصقري. جميع الحقوق محفوظة.</div>
   </div>
 </footer>
 
+<div class="hidden-sections-panel" id="hidden-panel">
+  <h4 id="hidden-panel-title">الأقسام المخفية</h4>
+  <ul id="hidden-panel-list"></ul>
+</div>
+
+<input type="file" id="file-input" accept="image/*" style="display:none;">
+
 <script>
-/* ===== DATA ===== */
-const stripItems = {
+/* ===== DEFAULT DATA ===== */
+const defaultStripItems = {
   ar:["كتابة المحتوى","بناء الاستراتيجيات","إدارة المنصات","الحملات الإبداعية","الهوية اللفظية"],
   en:["Content Writing","Strategy Building","Social Media Management","Creative Campaigns","Verbal Identity"]
 };
 
-
-
-const portfolio = [
+const defaultPortfolio = [
   {icon:"🎓",link:"https://drive.google.com/file/d/143sAwHDO4B9g3Wd5g53ovAc7rsZLnEf3/view?usp=sharing",tagAr:"إلقاء شعري",tagEn:"Poetry Recitation",
    titleAr:"تقديم قصيدة التخرج",titleEn:"Graduation Poem Recitation",
    descAr:"إلقاء قصيدة التخرج التي كتبها المعتز احتفاءً بالمناسبة، في محطة من محطاته الشعرية البارزة. اضغط لمشاهدة التسجيل الكامل.",
@@ -760,86 +1001,391 @@ const portfolio = [
    descEn:"Key poetry milestones, including delivering a graduation poem and being invited in 2016 to Lebanon to attend Salon Mays Literary Gathering with Arab poets."}
 ];
 
-const skills = {
+const defaultSkills = {
   ar:["كتابة المحتوى الرقمي","كتابة الحملات","بناء استراتيجيات المحتوى","إدارة منصات التواصل","الهوية اللفظية","المحتوى المؤسسي","كتابة النصوص الإعلانية","صياغة الرسائل الاتصالية","التقديم وإدارة الفعاليات","التفكير الإبداعي"],
   en:["Digital Content Writing","Campaign Copywriting","Content Strategy","Social Media Management","Verbal Identity","Corporate Communication","Advertising Copy","Communication Messaging","Event Hosting","Creative Thinking"]
 };
 
-const aboutAr = `<p>لم تبدأ علاقتي بالكلمة كوظيفة، بل كدهشة.<br>من الشعر ووقوف المنصات، تعلّمت أن النص ليس مجرد كلمات، بل <span class="underline-yellow">إحساس وإيقاع وموقف</span>. ومع الوقت، وجدت في التسويق والمحتوى الرقمي مساحة أوسع لتحويل هذه العلاقة إلى عمل احترافي؛ أكتب للعلامات، أبني الرسائل، وأصنع الحملات التي تجعل الأفكار أقرب إلى الناس.</p>
+const defaultAboutAr = `<p>لم تبدأ علاقتي بالكلمة كوظيفة، بل كدهشة.<br>من الشعر ووقوف المنصات، تعلّمت أن النص ليس مجرد كلمات، بل <span class="underline-yellow">إحساس وإيقاع وموقف</span>. ومع الوقت، وجدت في التسويق والمحتوى الرقمي مساحة أوسع لتحويل هذه العلاقة إلى عمل احترافي؛ أكتب للعلامات، أبني الرسائل، وأصنع الحملات التي تجعل الأفكار أقرب إلى الناس.</p>
 <p>بين الشعر، المنصات، الحملات، والمحتوى المؤسسي، تشكلت تجربتي في منطقة تجمع بين <span class="underline-yellow">الإبداع والانضباط</span>؛ حيث لا تكفي الفكرة الجميلة وحدها، ولا يكفي النص الصحيح وحده، بل يجب أن يلتقيا في رسالة واضحة، مؤثرة، وقابلة للتذكر.</p>`;
 
-const aboutEn = `<p>My relationship with words did not begin as a job. It began as a fascination.<br>Through poetry and public stages, I learned that writing is never just a collection of words — it is <span class="underline-yellow">rhythm, emotion, and presence</span>. Over time, marketing and digital content gave that passion a wider professional space: writing for brands, building messages, and shaping campaigns that bring ideas closer to people.</p>
+const defaultAboutEn = `<p>My relationship with words did not begin as a job. It began as a fascination.<br>Through poetry and public stages, I learned that writing is never just a collection of words — it is <span class="underline-yellow">rhythm, emotion, and presence</span>. Over time, marketing and digital content gave that passion a wider professional space: writing for brands, building messages, and shaping campaigns that bring ideas closer to people.</p>
 <p>Across poetry, platforms, campaigns, and corporate communication, my experience has grown at the intersection of <span class="underline-yellow">creativity and discipline</span> — where a beautiful idea needs a clear message, and a clear message needs a memorable voice.</p>`;
+
+const SECTION_LABELS = {
+  hero:{ar:"الرئيسية",en:"Home / Hero"},
+  strip:{ar:"شريط التخصصات",en:"Specialization Strip"},
+  about:{ar:"عني",en:"About"},
+  featured:{ar:"العمل المميز",en:"Featured Work"},
+  portfolio:{ar:"الأعمال (القسم كامل)",en:"Portfolio (whole section)"},
+  skills:{ar:"المهارات",en:"Skills"},
+  testimonials:{ar:"الشهادات",en:"Testimonials"},
+  cta:{ar:"دعوة التواصل",en:"Call To Action"}
+};
+
+const STORAGE_KEY = "muataz_site_state_v1";
+
+/* ===== STATE ===== */
+let state = null;
+let currentLang = "ar";
+let editMode = false;
+let pendingImageKey = null;
+
+function freshState(){
+  return {
+    portfolio: JSON.parse(JSON.stringify(defaultPortfolio)),
+    skills: JSON.parse(JSON.stringify(defaultSkills)),
+    stripItems: JSON.parse(JSON.stringify(defaultStripItems)),
+    aboutAr: defaultAboutAr,
+    aboutEn: defaultAboutEn,
+    heroImage: null,
+    featuredImage: null,
+    featuredLink: "https://youtu.be/5v79RTfReto?si=xgTuBNRAEd-tHF9p",
+    texts: {},
+    hiddenSections: [],
+    links: {li:"#", ig:"#", wa:"https://wa.me/96895816223"}
+  };
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const saved = JSON.parse(raw);
+      return Object.assign(freshState(), saved);
+    }
+  }catch(e){ console.warn("state load failed", e); }
+  return freshState();
+}
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn("state save failed", e); }
+}
+
+function resetAllData(){
+  const msg = currentLang==='ar' ? "سيتم حذف كل التعديلات (النصوص، الصور، الأقسام المحذوفة) والعودة للنسخة الأصلية. هل أنت متأكد؟" : "This will erase all edits (texts, images, deleted sections) and restore the original version. Are you sure?";
+  if(!confirm(msg)) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = freshState();
+  applyHiddenSections();
+  renderAll();
+  renderHiddenPanel();
+}
 
 /* ===== RENDER ===== */
 function renderStrip(lang){
-  const items = stripItems[lang];
+  const items = state.stripItems[lang];
   const block = items.map(i=>`<span>✦</span>${i}`).join(" &nbsp; ");
   document.getElementById('strip-track').innerHTML = block + " &nbsp; " + block;
 }
 
 function renderPortfolio(lang){
   const grid = document.getElementById('portfolio-grid');
-  grid.innerHTML = portfolio.map(p=>{
+  grid.innerHTML = state.portfolio.map((p,i)=>{
     const tag = p.link ? 'a' : 'div';
     const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
+    let thumbInner;
+    if(p.image){
+      thumbInner = `<img src="${p.image}" class="port-thumb-photo" alt="">`;
+    } else if(p.logos){
+      thumbInner = p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('');
+    } else {
+      thumbInner = p.icon || '';
+    }
     return `
     <${tag} class="port-card" ${linkAttrs}>
-      <div class="port-thumb ${p.logos?'port-thumb-logos':''}">
-        ${p.logos
-          ? p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('')
-          : p.icon}
+      <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem(${i})" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
+      <div class="port-thumb ${p.logos&&!p.image?'port-thumb-logos':''}">
+        ${thumbInner}
+        <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${i}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
       </div>
       <div class="port-body">
-        <span class="port-tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
-        <h3>${lang==='ar'?p.titleAr:p.titleEn}</h3>
-        <p>${lang==='ar'?p.descAr:p.descEn}</p>
+        <span class="port-tag" contenteditable="${editMode}" data-pf-idx="${i}" data-pf-field="tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
+        <h3 contenteditable="${editMode}" data-pf-idx="${i}" data-pf-field="title">${lang==='ar'?p.titleAr:p.titleEn}</h3>
+        <p contenteditable="${editMode}" data-pf-idx="${i}" data-pf-field="desc">${lang==='ar'?p.descAr:p.descEn}</p>
+        <button class="link-edit-btn" onclick="event.preventDefault();event.stopPropagation();editPortfolioLink(${i})">🔗 ${currentLang==='ar'?(p.link?'تعديل الرابط':'إضافة رابط'):(p.link?'Edit link':'Add link')}</button>
       </div>
     </${tag}>`;
-  }).join('');
+  }).join('') + `<button class="add-card-btn" onclick="addPortfolioItem()">+ ${currentLang==='ar'?'إضافة عمل جديد':'Add new work'}</button>`;
 }
 
 function renderSkills(lang){
   const grid = document.getElementById('skills-grid');
-  grid.innerHTML = skills[lang].map(s=>`<div class="skill-pill">${s}</div>`).join('');
+  grid.innerHTML = state.skills[lang].map((s,i)=>`
+    <div class="skill-pill">
+      <button class="card-delete-btn" onclick="deleteSkillItem(${i})" title="${currentLang==='ar'?'حذف':'Delete'}">✕</button>
+      <span contenteditable="${editMode}" data-sk-idx="${i}">${s}</span>
+    </div>`).join('') + `<button class="add-pill-btn" onclick="addSkillItem()">+ ${currentLang==='ar'?'إضافة':'Add'}</button>`;
 }
 
 function renderAbout(lang){
-  document.getElementById('about-text').innerHTML = lang==='ar'?aboutAr:aboutEn;
+  const el = document.getElementById('about-text');
+  el.innerHTML = lang==='ar' ? state.aboutAr : state.aboutEn;
+  el.setAttribute('contenteditable', editMode ? 'true':'false');
+  el.setAttribute('data-about','1');
+}
+
+function applyStaticTexts(lang){
+  document.querySelectorAll('[data-edit-key]').forEach(el=>{
+    const key = el.getAttribute('data-edit-key');
+    const type = el.getAttribute('data-edit-type') || 'text';
+    if(!state.texts[key]){
+      state.texts[key] = {
+        ar: type==='html' ? el.getAttribute('data-ar-html') : el.getAttribute('data-ar'),
+        en: type==='html' ? el.getAttribute('data-en-html') : el.getAttribute('data-en')
+      };
+    }
+    const val = state.texts[key][lang];
+    if(val !== undefined && val !== null){
+      if(type==='html') el.innerHTML = val; else el.textContent = val;
+    }
+    el.setAttribute('contenteditable', editMode ? 'true' : 'false');
+  });
+}
+
+function applyImages(){
+  if(state.heroImage) document.getElementById('hero-photo').src = state.heroImage;
+  if(state.featuredImage) document.getElementById('featured-photo').src = state.featuredImage;
+  document.getElementById('featured-link').href = state.featuredLink;
+  document.getElementById('social-li').href = state.links.li || '#';
+  document.getElementById('social-ig').href = state.links.ig || '#';
+  document.getElementById('social-wa').href = state.links.wa || '#';
+}
+
+function applyHiddenSections(){
+  document.querySelectorAll('[data-section-id]').forEach(el=>{
+    const id = el.getAttribute('data-section-id');
+    el.style.display = state.hiddenSections.includes(id) ? 'none' : '';
+  });
+}
+
+function renderHiddenPanel(){
+  const panel = document.getElementById('hidden-panel');
+  const list = document.getElementById('hidden-panel-list');
+  document.getElementById('hidden-panel-title').textContent = currentLang==='ar' ? `الأقسام المخفية (${state.hiddenSections.length})` : `Hidden Sections (${state.hiddenSections.length})`;
+  if(state.hiddenSections.length===0){
+    panel.classList.remove('has-hidden');
+    list.innerHTML = '';
+    return;
+  }
+  panel.classList.add('has-hidden');
+  list.innerHTML = state.hiddenSections.map(id=>{
+    const label = SECTION_LABELS[id] ? SECTION_LABELS[id][currentLang] : id;
+    return `<li><span>${label}</span><button onclick="restoreSection('${id}')">${currentLang==='ar'?'إظهار':'Restore'}</button></li>`;
+  }).join('');
+}
+
+function updateEditChrome(){
+  document.getElementById('edit-toggle-label').textContent = currentLang==='ar' ? 'تعديل الموقع' : 'Edit Site';
+  document.getElementById('edit-toggle-label-mobile').textContent = currentLang==='ar' ? 'تعديل الموقع' : 'Edit Site';
+  document.getElementById('edit-bar-text').textContent = currentLang==='ar'
+    ? 'وضع التعديل مفعّل — انقر أي نص لتحريره، أو استخدم أيقونات الصور والحذف'
+    : 'Edit mode is on — click any text to edit it, or use the image and delete icons';
+  document.getElementById('edit-bar-reset').textContent = currentLang==='ar' ? 'إعادة تعيين الكل' : 'Reset all';
+  document.getElementById('edit-bar-close').textContent = currentLang==='ar' ? 'إنهاء التعديل' : 'Done editing';
+  document.getElementById('strip-edit-title').title = currentLang==='ar' ? 'تعديل الشريط' : 'Edit strip';
+  document.getElementById('featured-link-label').textContent = currentLang==='ar' ? 'تعديل رابط الفيديو' : 'Edit video link';
+  document.getElementById('hero-photo-badge-title').title = currentLang==='ar' ? 'تغيير الصورة' : 'Change photo';
+  Object.keys(SECTION_LABELS).forEach(id=>{
+    const btn = document.getElementById('del-'+id);
+    if(btn) btn.title = currentLang==='ar' ? ('حذف: '+SECTION_LABELS[id].ar) : ('Delete: '+SECTION_LABELS[id].en);
+  });
+}
+
+function renderAll(){
+  renderStrip(currentLang);
+  renderPortfolio(currentLang);
+  renderSkills(currentLang);
+  renderAbout(currentLang);
+  applyStaticTexts(currentLang);
+  applyImages();
+  applyHiddenSections();
+  renderHiddenPanel();
+  updateEditChrome();
 }
 
 /* ===== LANGUAGE SWITCH ===== */
 function setLang(lang){
+  currentLang = lang;
   document.documentElement.lang = lang;
   document.documentElement.dir = lang==='ar' ? 'rtl' : 'ltr';
-  document.body.className = lang==='ar' ? 'lang-ar' : 'lang-en';
+  document.body.className = (lang==='ar' ? 'lang-ar' : 'lang-en') + (editMode ? ' edit-mode' : '');
 
   document.getElementById('btn-ar').classList.toggle('active', lang==='ar');
   document.getElementById('btn-en').classList.toggle('active', lang==='en');
 
-  document.querySelectorAll('[data-ar]').forEach(el=>{
-    const val = lang==='ar' ? el.getAttribute('data-ar') : el.getAttribute('data-en');
-    if(val !== null) el.textContent = val;
-  });
-  document.querySelectorAll('[data-ar-html]').forEach(el=>{
-    const val = lang==='ar' ? el.getAttribute('data-ar-html') : el.getAttribute('data-en-html');
-    if(val !== null) el.innerHTML = val;
-  });
-
-  renderStrip(lang);
-  renderPortfolio(lang);
-  renderSkills(lang);
-  renderAbout(lang);
-
+  renderAll();
   document.getElementById('mnav').classList.remove('open');
 }
 
+/* ===== EDIT MODE ===== */
+function toggleEditMode(){
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  renderAll();
+  if(editMode) window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ===== TEXT EDIT SAVE (delegated) ===== */
+document.addEventListener('focusout', function(e){
+  const el = e.target;
+  if(!el || el.getAttribute('contenteditable') !== 'true') return;
+
+  if(el.hasAttribute('data-edit-key')){
+    const key = el.getAttribute('data-edit-key');
+    const type = el.getAttribute('data-edit-type') || 'text';
+    if(!state.texts[key]) state.texts[key] = {ar:'', en:''};
+    state.texts[key][currentLang] = type==='html' ? el.innerHTML : el.textContent;
+    saveState();
+    applyStaticTexts(currentLang);
+  } else if(el.hasAttribute('data-pf-idx')){
+    const idx = parseInt(el.getAttribute('data-pf-idx'),10);
+    const field = el.getAttribute('data-pf-field');
+    const map = {tag:'tag', title:'title', desc:'desc'};
+    const suffix = currentLang==='ar' ? 'Ar' : 'En';
+    state.portfolio[idx][map[field]+suffix] = el.textContent;
+    saveState();
+  } else if(el.hasAttribute('data-sk-idx')){
+    const idx = parseInt(el.getAttribute('data-sk-idx'),10);
+    state.skills[currentLang][idx] = el.textContent;
+    saveState();
+  } else if(el.hasAttribute('data-about')){
+    if(currentLang==='ar') state.aboutAr = el.innerHTML; else state.aboutEn = el.innerHTML;
+    saveState();
+  }
+}, true);
+
+/* ===== IMAGES ===== */
+function changeImage(key){
+  pendingImageKey = key;
+  document.getElementById('file-input').click();
+}
+document.getElementById('file-input').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file || !pendingImageKey) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const dataUrl = ev.target.result;
+    if(pendingImageKey === 'hero'){
+      state.heroImage = dataUrl;
+    } else if(pendingImageKey === 'featured'){
+      state.featuredImage = dataUrl;
+    } else if(pendingImageKey.startsWith('portfolio-')){
+      const idx = parseInt(pendingImageKey.split('-')[1],10);
+      state.portfolio[idx].image = dataUrl;
+    }
+    saveState();
+    renderAll();
+    pendingImageKey = null;
+    e.target.value = '';
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ===== SECTIONS ===== */
+function deleteSection(id){
+  const label = SECTION_LABELS[id] ? SECTION_LABELS[id][currentLang] : id;
+  const msg = currentLang==='ar' ? `هل تريد حذف قسم "${label}"؟ يمكنك إعادته لاحقًا من لوحة الأقسام المخفية.` : `Delete the "${label}" section? You can restore it later from the hidden sections panel.`;
+  if(!confirm(msg)) return;
+  if(!state.hiddenSections.includes(id)) state.hiddenSections.push(id);
+  saveState();
+  applyHiddenSections();
+  renderHiddenPanel();
+}
+function restoreSection(id){
+  state.hiddenSections = state.hiddenSections.filter(x=>x!==id);
+  saveState();
+  applyHiddenSections();
+  renderHiddenPanel();
+}
+
+/* ===== PORTFOLIO / SKILLS ADD & DELETE ===== */
+function deletePortfolioItem(i){
+  const msg = currentLang==='ar' ? 'حذف هذا العمل من المعرض؟' : 'Delete this portfolio item?';
+  if(!confirm(msg)) return;
+  state.portfolio.splice(i,1);
+  saveState();
+  renderPortfolio(currentLang);
+}
+function addPortfolioItem(){
+  state.portfolio.push({
+    icon:"✨",
+    tagAr:"وسم جديد", tagEn:"New Tag",
+    titleAr:"عنوان عمل جديد", titleEn:"New Work Title",
+    descAr:"وصف مختصر لهذا العمل. انقر لتعديله.", descEn:"Short description of this work. Click to edit."
+  });
+  saveState();
+  renderPortfolio(currentLang);
+}
+function editPortfolioLink(i){
+  const current = state.portfolio[i].link || '';
+  const msg = currentLang==='ar' ? 'أدخل رابط هذا العمل (اتركه فارغًا للإزالة):' : 'Enter the link for this item (leave empty to remove):';
+  const url = prompt(msg, current);
+  if(url === null) return;
+  state.portfolio[i].link = url.trim() || null;
+  saveState();
+  renderPortfolio(currentLang);
+}
+
+function deleteSkillItem(i){
+  state.skills.ar.splice(i,1);
+  state.skills.en.splice(i,1);
+  saveState();
+  renderSkills(currentLang);
+}
+function addSkillItem(){
+  state.skills.ar.push("مهارة جديدة");
+  state.skills.en.push("New Skill");
+  saveState();
+  renderSkills(currentLang);
+}
+
+/* ===== STRIP / LINKS ===== */
+function editStrip(){
+  const msg = currentLang==='ar' ? 'أدخل عناصر الشريط مفصولة بفاصلة:' : 'Enter strip items separated by commas:';
+  const current = state.stripItems[currentLang].join(', ');
+  const val = prompt(msg, current);
+  if(val === null) return;
+  state.stripItems[currentLang] = val.split(',').map(s=>s.trim()).filter(Boolean);
+  saveState();
+  renderStrip(currentLang);
+}
+function editFeaturedLink(){
+  const msg = currentLang==='ar' ? 'أدخل رابط الفيديو المميز:' : 'Enter the featured video link:';
+  const url = prompt(msg, state.featuredLink);
+  if(url === null) return;
+  state.featuredLink = url.trim();
+  saveState();
+  applyImages();
+}
+function handleSocialClick(e, key){
+  if(!editMode) return true;
+  e.preventDefault();
+  const labels = {li:'LinkedIn', ig:'Instagram', wa:'WhatsApp'};
+  const msg = currentLang==='ar' ? `أدخل رابط ${labels[key]}:` : `Enter your ${labels[key]} link:`;
+  const url = prompt(msg, state.links[key] || '');
+  if(url === null) return false;
+  state.links[key] = url.trim() || '#';
+  saveState();
+  applyImages();
+  return false;
+}
+
+/* ===== PREVENT NAVIGATION WHILE EDITING ===== */
+document.addEventListener('click', function(e){
+  if(!editMode) return;
+  const a = e.target.closest('a');
+  if(a) e.preventDefault();
+}, true);
+
 /* close mobile nav on link click */
-document.querySelectorAll('.mobile-nav a, .nav-links a').forEach(a=>{
+document.querySelectorAll('.mobile-nav a').forEach(a=>{
   a.addEventListener('click', ()=>document.getElementById('mnav').classList.remove('open'));
 });
 
-/* init */
+/* ===== INIT ===== */
+state = loadState();
 setLang('ar');
 </script>
 </body>
