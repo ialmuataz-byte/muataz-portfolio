@@ -790,7 +790,25 @@ body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
   text-align:center;
   min-height:22px;
 }
-.gallery-add-btn{position:static;display:block;margin:16px auto 0;width:auto;}
+.gallery-add-btn{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  position:static;
+  margin:16px auto 0;
+  width:auto;
+  padding:11px 20px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  font-weight:700;
+  font-size:13.5px;
+  font-family:inherit;
+  color:var(--text);
+  cursor:pointer;
+}
+body.edit-mode .gallery-add-btn{display:inline-flex;}
+.gallery-add-btn:hover{background:var(--yellow);}
 .carousel-arrow{
   position:absolute;
   top:calc(50% - 21px);
@@ -1062,7 +1080,7 @@ footer{
       </div>
       <p class="gallery-caption" id="freelance-gallery-caption"></p>
       <div class="carousel-dots" id="freelance-carousel-dots"></div>
-      <button class="add-card-btn gallery-add-btn" onclick="addGalleryItem('freelance')" id="freelance-gallery-add">+ إضافة صورة</button>
+      <button class="gallery-add-btn" onclick="addGalleryItem('freelance')" id="freelance-gallery-add">+ إضافة صورة</button>
     </div>
   </div>
 
@@ -1076,7 +1094,7 @@ footer{
       </div>
       <p class="gallery-caption" id="asaas-gallery-caption"></p>
       <div class="carousel-dots" id="asaas-carousel-dots"></div>
-      <button class="add-card-btn gallery-add-btn" onclick="addGalleryItem('asaas')" id="asaas-gallery-add">+ إضافة صورة</button>
+      <button class="gallery-add-btn" onclick="addGalleryItem('asaas')" id="asaas-gallery-add">+ إضافة صورة</button>
     </div>
   </div>
 
@@ -1090,7 +1108,7 @@ footer{
       </div>
       <p class="gallery-caption" id="participation-gallery-caption"></p>
       <div class="carousel-dots" id="participation-carousel-dots"></div>
-      <button class="add-card-btn gallery-add-btn" onclick="addGalleryItem('participation')" id="participation-gallery-add">+ إضافة صورة</button>
+      <button class="gallery-add-btn" onclick="addGalleryItem('participation')" id="participation-gallery-add">+ إضافة صورة</button>
     </div>
   </div>
   <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
@@ -1757,11 +1775,15 @@ function addGalleryItem(category){
   pushUndoSnapshot();
   const items = state.galleries[category] || [];
   const nextOrder = items.length ? Math.max(...items.map(g=>g.order||0))+1 : 0;
+  const newIndex = items.length;
   addDoc(col, {
     order: nextOrder,
     icon: "🖼️",
     captionAr: "وصف الصورة. انقر لتعديله.",
     captionEn: "Image caption. Click to edit."
+  }).then(()=>{
+    galleryActiveIndex[category] = newIndex;
+    pauseAutoRotate(category);
   }).catch(err=>console.error(err));
 }
 function deleteGalleryItem(category, id){
