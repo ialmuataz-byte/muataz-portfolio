@@ -310,6 +310,28 @@ body.edit-mode .img-draggable.dragging-photo{cursor:grabbing;}
 }
 body.edit-mode .card-delete-btn{display:flex;}
 
+.port-move-select{
+  display:none;
+  position:absolute;
+  top:8px;
+  inset-inline-end:8px;
+  z-index:25;
+  max-width:calc(100% - 44px);
+  font-size:11px;
+  font-weight:700;
+  font-family:inherit;
+  padding:5px 8px;
+  border-radius:14px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  color:var(--text);
+  cursor:pointer;
+}
+body.edit-mode .port-move-select{display:inline-block;}
+body.edit-mode .port-card[draggable="true"]{cursor:grab;}
+body.edit-mode .port-card.dragging{opacity:.4;}
+.portfolio-grid.drag-target{outline:2.5px dashed var(--yellow);outline-offset:8px;border-radius:16px;}
+
 .link-edit-btn{
   display:none;
   align-items:center;
@@ -1035,12 +1057,12 @@ footer{
 
   <div class="portfolio-subsection">
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-freelance" data-ar="أعمال مستقلة" data-en="Freelance Work">أعمال مستقلة</h3>
-    <div class="portfolio-grid" id="portfolio-grid-freelance"></div>
+    <div class="portfolio-grid" id="portfolio-grid-freelance" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'freelance')"></div>
   </div>
 
   <div class="portfolio-subsection">
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-asaas" data-ar="أساس" data-en="ASAAS">أساس</h3>
-    <div class="portfolio-grid" id="portfolio-grid-asaas"></div>
+    <div class="portfolio-grid" id="portfolio-grid-asaas" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'asaas')"></div>
     <div class="asaas-gallery-wrap" id="asaas-gallery-wrap">
       <div class="gallery-carousel" id="asaas-carousel"></div>
       <button class="carousel-arrow carousel-prev" onclick="carouselMove(-1)" title="السابق" id="carousel-prev-title">‹</button>
@@ -1051,7 +1073,7 @@ footer{
 
   <div class="portfolio-subsection">
     <h3 class="portfolio-sub-heading" data-edit-key="portfolio-sub-participation" data-ar="مشاركات" data-en="Participations">مشاركات</h3>
-    <div class="portfolio-grid" id="portfolio-grid-participation"></div>
+    <div class="portfolio-grid" id="portfolio-grid-participation" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'participation')"></div>
   </div>
   <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
   </div>
@@ -1526,6 +1548,22 @@ function renderStrip(lang){
   document.getElementById('strip-track').innerHTML = block + " &nbsp; " + block;
 }
 
+const PORTFOLIO_CATEGORIES = ['freelance','asaas','participation'];
+const PORTFOLIO_CATEGORY_FALLBACK = {
+  freelance: {ar:'أعمال مستقلة', en:'Freelance Work'},
+  asaas: {ar:'أساس', en:'ASAAS'},
+  participation: {ar:'مشاركات', en:'Participations'}
+};
+
+function getItemCategory(p){
+  return PORTFOLIO_CATEGORIES.includes(p.category) ? p.category : 'freelance';
+}
+function categoryLabel(cat, lang){
+  const t = state.texts && state.texts['portfolio-sub-'+cat];
+  if(t && t[lang]) return t[lang];
+  return PORTFOLIO_CATEGORY_FALLBACK[cat][lang];
+}
+
 function portfolioCardHTML(p, lang){
   const tag = p.link ? 'a' : 'div';
   const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
@@ -1537,9 +1575,15 @@ function portfolioCardHTML(p, lang){
   } else {
     thumbInner = p.icon || '';
   }
+  const currentCat = getItemCategory(p);
+  const dragAttrs = editMode ? `draggable="true" ondragstart="handlePortDragStart(event,'${p.id}')" ondragend="handlePortDragEnd(event)"` : '';
+  const moveOptions = PORTFOLIO_CATEGORIES.map(c=>`<option value="${c}" ${c===currentCat?'selected':''}>${categoryLabel(c, currentLang)}</option>`).join('');
   return `
-    <${tag} class="port-card" ${linkAttrs}>
+    <${tag} class="port-card" ${linkAttrs} ${dragAttrs}>
       <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem('${p.id}')" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
+      <select class="port-move-select" onclick="event.preventDefault();event.stopPropagation();" onchange="event.preventDefault();event.stopPropagation();movePortfolioItem('${p.id}', this.value)" title="${currentLang==='ar'?'نقل إلى قسم آخر':'Move to another section'}">
+        ${moveOptions}
+      </select>
       <div class="port-thumb ${p.logos&&!p.image?'port-thumb-logos':''}">
         ${thumbInner}
         <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${p.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
@@ -1553,13 +1597,10 @@ function portfolioCardHTML(p, lang){
     </${tag}>`;
 }
 
-const PORTFOLIO_CATEGORIES = ['freelance','asaas','participation'];
-
 function renderPortfolio(lang){
   const groups = {freelance:[], asaas:[], participation:[]};
   state.portfolio.forEach(p=>{
-    const cat = PORTFOLIO_CATEGORIES.includes(p.category) ? p.category : 'freelance';
-    groups[cat].push(p);
+    groups[getItemCategory(p)].push(p);
   });
   PORTFOLIO_CATEGORIES.forEach(cat=>{
     const grid = document.getElementById('portfolio-grid-'+cat);
@@ -2105,6 +2146,50 @@ function addPortfolioItem(category){
     descAr:"وصف مختصر لهذا العمل. انقر لتعديله.", descEn:"Short description of this work. Click to edit."
   }).catch(err=>console.error(err));
 }
+
+/* ===== MOVE PORTFOLIO ITEMS BETWEEN SECTIONS (dropdown + drag-and-drop) ===== */
+function movePortfolioItem(id, newCategory){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  if(!PORTFOLIO_CATEGORIES.includes(newCategory)) return;
+  const item = state.portfolio.find(p=>p.id===id);
+  if(!item || getItemCategory(item) === newCategory) return;
+  pushUndoSnapshot();
+  updateDoc(doc(portfolioCol, id), {category: newCategory}).catch(err=>console.error(err));
+}
+
+let dragPortId = null;
+function handlePortDragStart(e, id){
+  if(!editMode || !currentUser){ e.preventDefault(); return; }
+  dragPortId = id;
+  if(e.dataTransfer){
+    e.dataTransfer.effectAllowed = 'move';
+    try{ e.dataTransfer.setData('text/plain', id); }catch(err){}
+  }
+  e.currentTarget.classList.add('dragging');
+}
+function handlePortDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.portfolio-grid.drag-target').forEach(g=>g.classList.remove('drag-target'));
+  dragPortId = null;
+}
+function handlePortDragOver(e){
+  if(!editMode || !dragPortId) return;
+  e.preventDefault();
+  if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-target');
+}
+function handlePortDragLeave(e){
+  e.currentTarget.classList.remove('drag-target');
+}
+function handlePortDrop(e, category){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-target');
+  const id = dragPortId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+  dragPortId = null;
+  if(!id) return;
+  movePortfolioItem(id, category);
+}
+
 function editPortfolioLink(id){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
   const item = state.portfolio.find(p=>p.id===id);
@@ -2195,6 +2280,12 @@ Object.assign(window, {
   deletePortfolioItem,
   addPortfolioItem,
   editPortfolioLink,
+  movePortfolioItem,
+  handlePortDragStart,
+  handlePortDragEnd,
+  handlePortDragOver,
+  handlePortDragLeave,
+  handlePortDrop,
   deleteSkillItem,
   addSkillItem,
   addGalleryItem,
