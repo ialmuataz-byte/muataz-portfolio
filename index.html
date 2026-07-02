@@ -777,14 +777,55 @@ body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
   background:var(--white);
   gap:18px;
   padding:18px;
+  height:auto;
+  min-height:170px;
+  flex-wrap:wrap;
+}
+.logo-slot{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  max-height:120px;
+  max-width:30%;
 }
 .port-logo-img{
   max-height:120px;
-  max-width:30%;
+  max-width:100%;
   width:auto;
   height:auto;
   object-fit:contain;
 }
+.logo-slot-delete{
+  display:none;
+  position:absolute;
+  top:-8px;
+  inset-inline-end:-8px;
+  width:20px;height:20px;
+  border-radius:50%;
+  background:var(--danger);
+  color:#fff;
+  border:1.5px solid var(--dark);
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  padding:0;
+}
+body.edit-mode .logo-slot-delete{display:flex;}
+.logo-slot-add{
+  display:none;
+  width:56px;height:56px;
+  flex-shrink:0;
+  border:2px dashed var(--border);
+  border-radius:12px;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  align-items:center;
+  justify-content:center;
+}
+body.edit-mode .logo-slot-add{display:flex;}
+.logo-slot-add:hover{background:var(--yellow);color:var(--dark);border-color:var(--dark);}
 .port-thumb-photo{width:100%;height:100%;object-fit:cover;filter:grayscale(.6);transition:filter .35s ease;}
 .port-card:hover .port-thumb-photo{filter:grayscale(0);}
 .port-body{padding:26px;}
@@ -912,6 +953,7 @@ body.edit-mode .gallery-add-btn{display:inline-flex;}
 }
 .carousel-prev{inset-inline-start:14px;}
 .carousel-next{inset-inline-end:14px;}
+html[dir="rtl"] .carousel-arrow svg{transform:scaleX(-1);}
 .carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:14px;}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);cursor:pointer;padding:0;}
 .carousel-dot.active{background:var(--yellow);}
@@ -1771,25 +1813,33 @@ function portfolioCardHTML(p, lang){
   const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
   let thumbInner;
   const itemTitle = (lang==='ar' ? p.titleAr : p.titleEn) || '';
+  const isLogosCard = Array.isArray(p.logos);
   if(p.image){
     thumbInner = `<img src="${p.image}" class="port-thumb-photo" alt="${itemTitle}">`;
-  } else if(p.logos){
-    thumbInner = p.logos.map(l=>`<img src="${l}" alt="${itemTitle}" class="port-logo-img">`).join('');
+  } else if(isLogosCard){
+    const slots = p.logos.map((l,i)=>`
+      <div class="logo-slot">
+        <img src="${l}" alt="${itemTitle}" class="port-logo-img">
+        <button type="button" class="logo-slot-delete" onclick="event.preventDefault();event.stopPropagation();removeLogoItem('${p.id}',${i})" title="${currentLang==='ar'?'حذف الشعار':'Remove logo'}" aria-label="${currentLang==='ar'?'حذف الشعار':'Remove logo'}"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button>
+      </div>`).join('');
+    const addSlot = `<button type="button" class="logo-slot logo-slot-add" onclick="event.preventDefault();event.stopPropagation();addLogoSlot('${p.id}')" title="${currentLang==='ar'?'إضافة شعار':'Add logo'}" aria-label="${currentLang==='ar'?'إضافة شعار':'Add logo'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`;
+    thumbInner = slots + addSlot;
   } else {
     thumbInner = p.icon || '';
   }
   const currentCat = getItemCategory(p);
   const dragAttrs = editMode ? `draggable="true" ondragstart="handlePortDragStart(event,'${p.id}')" ondragend="handlePortDragEnd(event)"` : '';
   const moveOptions = PORTFOLIO_CATEGORIES.map(c=>`<option value="${c}" ${c===currentCat?'selected':''}>${categoryLabel(c, currentLang)}</option>`).join('');
+  const imageBadge = isLogosCard ? '' : `<button type="button" class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${p.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}" aria-label="${currentLang==='ar'?'تغيير الصورة':'Change image'}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>`;
   return `
     <${tag} class="port-card" ${linkAttrs} ${dragAttrs}>
       <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem('${p.id}')" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}" aria-label="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button>
       <select class="port-move-select" onclick="event.preventDefault();event.stopPropagation();" onchange="event.preventDefault();event.stopPropagation();movePortfolioItem('${p.id}', this.value)" title="${currentLang==='ar'?'نقل إلى قسم آخر':'Move to another section'}" aria-label="${currentLang==='ar'?'نقل إلى قسم آخر':'Move to another section'}">
         ${moveOptions}
       </select>
-      <div class="port-thumb ${p.logos&&!p.image?'port-thumb-logos':''}">
+      <div class="port-thumb ${isLogosCard&&!p.image?'port-thumb-logos':''}">
         ${thumbInner}
-        <button type="button" class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${p.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}" aria-label="${currentLang==='ar'?'تغيير الصورة':'Change image'}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+        ${imageBadge}
       </div>
       <div class="port-body">
         <span class="port-tag" contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
@@ -1811,6 +1861,7 @@ function renderPortfolio(lang){
     grid.innerHTML = groups[cat].map(p=>portfolioCardHTML(p, lang)).join('')
       + `<div class="add-card-btn">
           <button class="add-choice-option" onclick="addPortfolioItem('${cat}')">+ ${currentLang==='ar'?'بوست':'Post'}</button>
+          <button class="add-choice-option" onclick="addLogosItem('${cat}')">+ ${currentLang==='ar'?'شعارات':'Logos'}</button>
           <button class="add-choice-option" onclick="addCarousel('${cat}')">+ ${currentLang==='ar'?'كاروسيل':'Carousel'}</button>
         </div>`;
   });
@@ -2370,6 +2421,12 @@ function applyUploadedImage(key, dataUrl){
     const [cat, id] = rest.split('::');
     const col = GALLERY_COLLECTIONS[cat];
     if(col && id) updateDoc(doc(col, id), {image: dataUrl}).catch(err=>console.error(err));
+  } else if(key.startsWith('logos-add-')){
+    const id = key.slice('logos-add-'.length);
+    const item = state.portfolio.find(p=>p.id===id);
+    const current = (item && Array.isArray(item.logos)) ? item.logos.slice() : [];
+    current.push(dataUrl);
+    updateDoc(doc(portfolioCol, id), {logos: current}).catch(err=>console.error(err));
   }
 }
 
@@ -2506,6 +2563,35 @@ function addPortfolioItem(category){
   }).catch(err=>console.error(err));
 }
 
+/* ===== MULTI-LOGO CARDS (e.g. "team/partners" cards showing several logos at once) ===== */
+function addLogosItem(category){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  pushUndoSnapshot();
+  const nextOrder = state.portfolio.length ? Math.max(...state.portfolio.map(p=>p.order||0))+1 : 0;
+  addDoc(portfolioCol, {
+    order: nextOrder,
+    category: PORTFOLIO_CATEGORIES.includes(category) ? category : 'freelance',
+    logos: [],
+    tagAr:"شركاء", tagEn:"Partners",
+    titleAr:"عنوان جديد", titleEn:"New Title",
+    descAr:"وصف مختصر. انقر لتعديله.", descEn:"Short description. Click to edit."
+  }).catch(err=>console.error(err));
+}
+function addLogoSlot(id){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  pendingImageKey = 'logos-add-'+id;
+  document.getElementById('file-input').click();
+}
+function removeLogoItem(id, index){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const item = state.portfolio.find(p=>p.id===id);
+  if(!item || !Array.isArray(item.logos)) return;
+  pushUndoSnapshot();
+  const updated = item.logos.slice();
+  updated.splice(index,1);
+  updateDoc(doc(portfolioCol, id), {logos: updated}).catch(err=>console.error(err));
+}
+
 /* ===== MOVE PORTFOLIO ITEMS BETWEEN SECTIONS (dropdown + drag-and-drop) ===== */
 function movePortfolioItem(id, newCategory){
   if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
@@ -2640,6 +2726,9 @@ Object.assign(window, {
   changeImage,
   deletePortfolioItem,
   addPortfolioItem,
+  addLogosItem,
+  addLogoSlot,
+  removeLogoItem,
   editPortfolioLink,
   movePortfolioItem,
   handlePortDragStart,
