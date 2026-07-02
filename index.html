@@ -111,6 +111,24 @@ h1,h2,h3{font-weight:900;line-height:1.25;}
   transform:translateY(-3px);
 }
 
+/* ============ SKIP LINK ============ */
+.skip-link{
+  position:absolute;
+  top:-60px;
+  inset-inline-end:16px;
+  z-index:2000;
+  background:var(--yellow);
+  color:var(--dark);
+  font-weight:700;
+  font-size:14px;
+  padding:12px 22px;
+  border-radius:0 0 12px 12px;
+  border:2px solid var(--border);
+  border-top:none;
+  transition:top .2s ease;
+}
+.skip-link:focus{top:0;}
+
 /* ============ HEADER ============ */
 header{
   position:sticky;
@@ -977,7 +995,7 @@ footer{
 </head>
 <body class="lang-ar">
 
-<div id="load-overlay" style="position:fixed;inset:0;z-index:5000;background:#F3F0E8;display:flex;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;font-weight:700;font-size:15px;color:#1F1F1F;">
+<div id="load-overlay" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:5000;background:#F3F0E8;display:flex;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;font-weight:700;font-size:15px;color:#1F1F1F;">
   <span id="load-overlay-text">جارِ تحميل المحتوى...</span>
 </div>
 
@@ -989,10 +1007,11 @@ footer{
   <button onclick="toggleEditMode()" id="edit-bar-close">إنهاء التعديل</button>
 </div>
 
+<a href="#hero" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
 <header>
   <div class="nav-wrap">
     <div class="logo" data-edit-key="logo" data-edit-type="html" data-ar-html="المعتز<span>.</span>" data-en-html="Muataz<span>.</span>">المعتز<span>.</span></div>
-    <nav class="nav-links">
+    <nav class="nav-links" aria-label="التنقل الرئيسي">
       <a href="#hero" data-edit-key="nav-home" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
       <a href="#about" data-edit-key="nav-about" data-ar="عني" data-en="About">عني</a>
       <a href="#portfolio" data-edit-key="nav-portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
@@ -1001,28 +1020,28 @@ footer{
     </nav>
     <div class="nav-right">
       <div class="lang-toggle">
-        <button id="btn-ar" class="active" onclick="setLang('ar')">عربي</button>
-        <button id="btn-en" onclick="setLang('en')">English</button>
+        <button id="btn-ar" class="active" aria-pressed="true" onclick="setLang('ar')">عربي</button>
+        <button id="btn-en" aria-pressed="false" onclick="setLang('en')">English</button>
       </div>
       <button class="edit-toggle-btn" onclick="toggleEditMode()">
         <span>✎</span><span id="edit-toggle-label">تعديل الموقع</span>
       </button>
       <a href="#contact" class="btn btn-primary" style="padding:10px 22px;" data-edit-key="nav-cta-btn" data-ar="لنتحدث" data-en="Let's Talk">لنتحدث</a>
-      <button class="burger" onclick="document.getElementById('mnav').classList.toggle('open')">☰</button>
+      <button class="burger" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mnav" onclick="toggleMobileNav()">☰</button>
     </div>
   </div>
-  <div class="mobile-nav" id="mnav">
+  <nav class="mobile-nav" id="mnav" aria-label="قائمة الجوال">
     <a href="#hero" data-edit-key="nav-home" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
     <a href="#about" data-edit-key="nav-about" data-ar="عني" data-en="About">عني</a>
     <a href="#portfolio" data-edit-key="nav-portfolio" data-ar="الأعمال" data-en="Portfolio">الأعمال</a>
     <a href="#skills" data-edit-key="nav-skills" data-ar="المهارات" data-en="Skills">المهارات</a>
     <a href="#contact" data-edit-key="nav-contact" data-ar="تواصل" data-en="Contact">تواصل</a>
     <button class="edit-toggle-btn edit-toggle-btn-mobile" onclick="toggleEditMode()">✎ <span id="edit-toggle-label-mobile">تعديل الموقع</span></button>
-  </div>
+  </nav>
 </header>
 
 <!-- ============ HERO ============ -->
-<section class="hero editable-section" id="hero" data-section-id="hero">
+<section class="hero editable-section" id="hero" data-section-id="hero" tabindex="-1">
   <div class="container hero-inner">
   <div class="hero-text">
     <p class="eyebrow" data-edit-key="hero-eyebrow" data-ar="كاتب محتوى إبداعي • مختص تسويق" data-en="Creative Content Writer • Marketing Specialist">كاتب محتوى إبداعي • مختص تسويق</p>
@@ -1042,18 +1061,18 @@ footer{
   <div class="hero-img-wrap">
     <div class="hero-img-bg"></div>
     <img src="profile.jpg" alt="Al Muataz Al Saqri" class="hero-img img-draggable" id="hero-photo" draggable="false">
-    <div class="img-edit-badge hero-photo-badge" onclick="changeImage('hero')" title="تغيير الصورة" id="hero-photo-badge-title">🖼️</div>
+    <button type="button" class="img-edit-badge hero-photo-badge" onclick="changeImage('hero')" title="تغيير الصورة" aria-label="تغيير الصورة" id="hero-photo-badge-title">🖼️</button>
     <div class="img-move-hint" id="hero-move-hint">اسحب لتحريك الصورة</div>
   </div>
   </div>
-  <button class="section-delete-btn" onclick="deleteSection('hero')" title="حذف قسم الرئيسية" id="del-hero">✕</button>
+  <button class="section-delete-btn" onclick="deleteSection('hero')" title="حذف قسم الرئيسية" aria-label="حذف قسم الرئيسية" id="del-hero">✕</button>
 </section>
 
 <!-- ============ SPECIALIZATION STRIP ============ -->
 <div class="strip editable-section" data-section-id="strip">
   <div class="strip-track" id="strip-track"></div>
-  <button class="strip-edit-btn" onclick="editStrip()" title="تعديل الشريط" id="strip-edit-title">✎</button>
-  <button class="section-delete-btn" onclick="deleteSection('strip')" title="حذف الشريط" id="del-strip">✕</button>
+  <button class="strip-edit-btn" onclick="editStrip()" title="تعديل الشريط" aria-label="تعديل الشريط" id="strip-edit-title">✎</button>
+  <button class="section-delete-btn" onclick="deleteSection('strip')" title="حذف الشريط" aria-label="حذف الشريط" id="del-strip">✕</button>
 </div>
 
 <!-- ============ ABOUT ============ -->
@@ -1064,7 +1083,7 @@ footer{
       <h2 data-edit-key="about-heading" data-ar="عني." data-en="About Me.">عني.</h2>
     </div>
     <div class="about-text" id="about-text"></div>
-    <button class="section-delete-btn" onclick="deleteSection('about')" title="حذف قسم عني" id="del-about">✕</button>
+    <button class="section-delete-btn" onclick="deleteSection('about')" title="حذف قسم عني" aria-label="حذف قسم عني" id="del-about">✕</button>
   </div>
 </section>
 
@@ -1081,7 +1100,7 @@ footer{
       <div class="featured-img">
         <img src="https://img.youtube.com/vi/5v79RTfReto/maxresdefault.jpg" alt="Featured Work" loading="lazy" id="featured-photo" class="img-draggable" draggable="false">
         <div class="featured-play">▶</div>
-        <div class="img-edit-badge" style="top:14px;inset-inline-start:14px;" onclick="event.preventDefault();changeImage('featured')" title="تغيير الصورة">🖼️</div>
+        <button type="button" class="img-edit-badge" style="top:14px;inset-inline-start:14px;" onclick="event.preventDefault();changeImage('featured')" title="تغيير الصورة" aria-label="تغيير الصورة">🖼️</button>
         <div class="img-move-hint" id="featured-move-hint">اسحب لتحريك الصورة</div>
       </div>
       <div class="featured-caption">
@@ -1091,7 +1110,7 @@ footer{
       </div>
     </a>
     <button class="link-edit-btn" style="margin:0 0 30px;" onclick="editFeaturedLink()" id="featured-link-btn">🔗 <span id="featured-link-label">تعديل رابط الفيديو</span></button>
-    <button class="section-delete-btn" style="top:0;inset-inline-end:0;" onclick="deleteSection('featured')" title="حذف العمل المميز" id="del-featured">✕</button>
+    <button class="section-delete-btn" style="top:0;inset-inline-end:0;" onclick="deleteSection('featured')" title="حذف العمل المميز" aria-label="حذف العمل المميز" id="del-featured">✕</button>
   </div>
 
   <div class="portfolio-subsection">
@@ -1111,7 +1130,7 @@ footer{
     <div class="portfolio-grid" id="portfolio-grid-participation" ondragover="handlePortDragOver(event)" ondragleave="handlePortDragLeave(event)" ondrop="handlePortDrop(event,'participation')"></div>
     <div class="carousels-list" id="participation-carousels-list"></div>
   </div>
-  <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
+  <button class="section-delete-btn" onclick="deleteSection('portfolio')" title="حذف قسم الأعمال بالكامل" aria-label="حذف قسم الأعمال بالكامل" id="del-portfolio">✕</button>
   </div>
 </section>
 
@@ -1123,7 +1142,7 @@ footer{
     <h2 data-edit-key="skills-heading" data-ar="المهارات." data-en="Skills.">المهارات.</h2>
   </div>
   <div class="skills-grid" id="skills-grid"></div>
-  <button class="section-delete-btn" onclick="deleteSection('skills')" title="حذف قسم المهارات" id="del-skills">✕</button>
+  <button class="section-delete-btn" onclick="deleteSection('skills')" title="حذف قسم المهارات" aria-label="حذف قسم المهارات" id="del-skills">✕</button>
   </div>
 </section>
 
@@ -1137,7 +1156,7 @@ footer{
   <div class="testimonial-box" id="testimonial-text" data-edit-key="testimonial-text" data-ar="مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة." data-en="Placeholder for client testimonials and partner feedback.">
     مساحة مخصصة لإضافة آراء العملاء أو الجهات المتعاونة.
   </div>
-  <button class="section-delete-btn" onclick="deleteSection('testimonials')" title="حذف قسم الشهادات" id="del-testimonials">✕</button>
+  <button class="section-delete-btn" onclick="deleteSection('testimonials')" title="حذف قسم الشهادات" aria-label="حذف قسم الشهادات" id="del-testimonials">✕</button>
   </div>
 </section>
 
@@ -1150,7 +1169,7 @@ footer{
       <a href="#contact" class="btn btn-primary" data-edit-key="cta-btn-primary" data-ar="تواصل معي" data-en="Let's Talk">تواصل معي</a>
       <a href="#portfolio" class="btn btn-outline" data-edit-key="cta-btn-outline" data-ar="شاهد الأعمال" data-en="View Work">شاهد الأعمال</a>
     </div>
-    <button class="section-delete-btn" onclick="deleteSection('cta')" title="حذف قسم الدعوة للتواصل" id="del-cta">✕</button>
+    <button class="section-delete-btn" onclick="deleteSection('cta')" title="حذف قسم الدعوة للتواصل" aria-label="حذف قسم الدعوة للتواصل" id="del-cta">✕</button>
   </div>
   </div>
 </section>
@@ -1168,9 +1187,9 @@ footer{
       <div data-edit-key="footer-email" data-ar="✉️ أضف البريد الإلكتروني هنا" data-en="✉️ Add email here">✉️ أضف البريد الإلكتروني هنا</div>
     </div>
     <div class="footer-social">
-      <a href="#" title="LinkedIn" id="social-li" onclick="return handleSocialClick(event,'li')">in</a>
-      <a href="#" title="Instagram" id="social-ig" onclick="return handleSocialClick(event,'ig')">IG</a>
-      <a href="https://wa.me/96895816223" title="WhatsApp" id="social-wa" onclick="return handleSocialClick(event,'wa')">WA</a>
+      <a href="#" title="LinkedIn" aria-label="LinkedIn" id="social-li" onclick="return handleSocialClick(event,'li')">in</a>
+      <a href="#" title="Instagram" aria-label="Instagram" id="social-ig" onclick="return handleSocialClick(event,'ig')">IG</a>
+      <a href="https://wa.me/96895816223" title="WhatsApp" aria-label="WhatsApp" id="social-wa" onclick="return handleSocialClick(event,'wa')">WA</a>
     </div>
   </div>
   <div class="footer-bottom" data-edit-key="footer-copyright" data-ar="© 2026 المعتز الصقري. جميع الحقوق محفوظة." data-en="© 2026 Al Muataz Al Saqri. All rights reserved.">© 2026 المعتز الصقري. جميع الحقوق محفوظة.</div>
@@ -1183,7 +1202,7 @@ footer{
 </div>
 
 <input type="file" id="file-input" accept="image/*" style="display:none;">
-<div class="upload-toast" id="upload-toast"></div>
+<div class="upload-toast" id="upload-toast" role="status" aria-live="polite"></div>
 
 <!-- ============ FIREBASE (CDN, ES Modules — no npm) ============
      This whole application script is now type="module" so it can use
@@ -1703,10 +1722,11 @@ function portfolioCardHTML(p, lang){
   const tag = p.link ? 'a' : 'div';
   const linkAttrs = p.link ? `href="${p.link}" target="_blank" rel="noopener"` : '';
   let thumbInner;
+  const itemTitle = (lang==='ar' ? p.titleAr : p.titleEn) || '';
   if(p.image){
-    thumbInner = `<img src="${p.image}" class="port-thumb-photo" alt="">`;
+    thumbInner = `<img src="${p.image}" class="port-thumb-photo" alt="${itemTitle}">`;
   } else if(p.logos){
-    thumbInner = p.logos.map(l=>`<img src="${l}" alt="logo" class="port-logo-img">`).join('');
+    thumbInner = p.logos.map(l=>`<img src="${l}" alt="${itemTitle}" class="port-logo-img">`).join('');
   } else {
     thumbInner = p.icon || '';
   }
@@ -1715,13 +1735,13 @@ function portfolioCardHTML(p, lang){
   const moveOptions = PORTFOLIO_CATEGORIES.map(c=>`<option value="${c}" ${c===currentCat?'selected':''}>${categoryLabel(c, currentLang)}</option>`).join('');
   return `
     <${tag} class="port-card" ${linkAttrs} ${dragAttrs}>
-      <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem('${p.id}')" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
-      <select class="port-move-select" onclick="event.preventDefault();event.stopPropagation();" onchange="event.preventDefault();event.stopPropagation();movePortfolioItem('${p.id}', this.value)" title="${currentLang==='ar'?'نقل إلى قسم آخر':'Move to another section'}">
+      <button class="card-delete-btn" onclick="event.preventDefault();event.stopPropagation();deletePortfolioItem('${p.id}')" title="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}" aria-label="${currentLang==='ar'?'حذف هذا العمل':'Delete this item'}">✕</button>
+      <select class="port-move-select" onclick="event.preventDefault();event.stopPropagation();" onchange="event.preventDefault();event.stopPropagation();movePortfolioItem('${p.id}', this.value)" title="${currentLang==='ar'?'نقل إلى قسم آخر':'Move to another section'}" aria-label="${currentLang==='ar'?'نقل إلى قسم آخر':'Move to another section'}">
         ${moveOptions}
       </select>
       <div class="port-thumb ${p.logos&&!p.image?'port-thumb-logos':''}">
         ${thumbInner}
-        <div class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${p.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</div>
+        <button type="button" class="img-edit-badge" style="bottom:8px;inset-inline-end:8px;" onclick="event.preventDefault();event.stopPropagation();changeImage('portfolio-${p.id}')" title="${currentLang==='ar'?'تغيير الصورة':'Change image'}" aria-label="${currentLang==='ar'?'تغيير الصورة':'Change image'}">🖼️</button>
       </div>
       <div class="port-body">
         <span class="port-tag" contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
@@ -1764,12 +1784,12 @@ function renderCarouselsList(category, lang){
     <div class="carousel-block">
       <div class="carousel-block-head">
         <h4 class="carousel-title" contenteditable="${editMode}" data-cr-id="${c.id}" data-cr-cat="${category}">${lang==='ar'?c.titleAr:c.titleEn}</h4>
-        <button class="section-delete-btn carousel-del-btn" onclick="deleteCarousel('${category}','${c.id}')" title="${currentLang==='ar'?'حذف الكاروسيل':'Delete carousel'}">✕</button>
+        <button class="section-delete-btn carousel-del-btn" onclick="deleteCarousel('${category}','${c.id}')" title="${currentLang==='ar'?'حذف الكاروسيل':'Delete carousel'}" aria-label="${currentLang==='ar'?'حذف الكاروسيل':'Delete carousel'}">✕</button>
       </div>
       <div class="gallery-wrap" id="gwrap-${c.id}">
         <div class="gallery-stage" id="gstage-${c.id}">
-          <button class="carousel-arrow carousel-prev" onclick="carouselMove('${category}','${c.id}',-1)" title="${currentLang==='ar'?'السابق':'Previous'}">‹</button>
-          <button class="carousel-arrow carousel-next" onclick="carouselMove('${category}','${c.id}',1)" title="${currentLang==='ar'?'التالي':'Next'}">›</button>
+          <button class="carousel-arrow carousel-prev" onclick="carouselMove('${category}','${c.id}',-1)" title="${currentLang==='ar'?'السابق':'Previous'}" aria-label="${currentLang==='ar'?'الصورة السابقة':'Previous image'}">‹</button>
+          <button class="carousel-arrow carousel-next" onclick="carouselMove('${category}','${c.id}',1)" title="${currentLang==='ar'?'التالي':'Next'}" aria-label="${currentLang==='ar'?'الصورة التالية':'Next image'}">›</button>
         </div>
         <p class="gallery-caption" id="gcap-${c.id}"></p>
         <div class="carousel-dots" id="gdots-${c.id}"></div>
@@ -1807,20 +1827,25 @@ function renderCarouselStage(category, carouselId, lang){
   items.forEach((g,i)=>{
     const slide = document.createElement('div');
     slide.className = 'carousel-slide' + (i===idx ? ' active' : '');
+    const slideAlt = (lang==='ar' ? g.captionAr : g.captionEn) || '';
     slide.innerHTML = g.image
-      ? `<img src="${g.image}" class="carousel-slide-img" alt="">`
+      ? `<img src="${g.image}" class="carousel-slide-img" alt="${slideAlt}">`
       : `<div class="carousel-slide-icon">${g.icon || '🖼️'}</div>`;
     if(i===idx){
-      const badge = document.createElement('div');
+      const badge = document.createElement('button');
+      badge.type = 'button';
       badge.className = 'img-edit-badge';
       badge.style.bottom = '12px'; badge.style.insetInlineEnd = '12px';
       badge.title = currentLang==='ar' ? 'تغيير الصورة' : 'Change image';
+      badge.setAttribute('aria-label', badge.title);
       badge.textContent = '🖼️';
       badge.onclick = ()=>changeImage('gallery-'+category+'::'+g.id);
       slide.appendChild(badge);
       const delBtn = document.createElement('button');
+      delBtn.type = 'button';
       delBtn.className = 'card-delete-btn';
       delBtn.title = currentLang==='ar' ? 'حذف الصورة' : 'Delete image';
+      delBtn.setAttribute('aria-label', delBtn.title);
       delBtn.textContent = '✕';
       delBtn.onclick = ()=>deleteGalleryItem(category, g.id);
       slide.appendChild(delBtn);
@@ -1829,7 +1854,7 @@ function renderCarouselStage(category, carouselId, lang){
   });
 
   if(dotsWrap){
-    dotsWrap.innerHTML = items.map((g,i)=>`<button class="carousel-dot ${i===idx?'active':''}" onclick="carouselGoTo('${category}','${carouselId}', ${i})" aria-label="${i+1}"></button>`).join('');
+    dotsWrap.innerHTML = items.map((g,i)=>`<button class="carousel-dot ${i===idx?'active':''}" onclick="carouselGoTo('${category}','${carouselId}', ${i})" aria-label="${currentLang==='ar'?'الانتقال إلى الصورة '+(i+1):'Go to image '+(i+1)}" aria-current="${i===idx?'true':'false'}"></button>`).join('');
   }
   if(captionEl){
     const active = items[idx];
@@ -1944,7 +1969,7 @@ function renderSkills(lang){
   const grid = document.getElementById('skills-grid');
   grid.innerHTML = state.skills.map((s)=>`
     <div class="skill-pill">
-      <button class="card-delete-btn" onclick="deleteSkillItem('${s.id}')" title="${currentLang==='ar'?'حذف':'Delete'}">✕</button>
+      <button class="card-delete-btn" onclick="deleteSkillItem('${s.id}')" title="${currentLang==='ar'?'حذف':'Delete'}" aria-label="${currentLang==='ar'?'حذف مهارة':'Delete skill'}">✕</button>
       <span contenteditable="${editMode}" data-sk-id="${s.id}">${lang==='ar'?s.ar:s.en}</span>
     </div>`).join('') + `<button class="add-pill-btn" onclick="addSkillItem()">+ ${currentLang==='ar'?'إضافة':'Add'}</button>`;
 }
@@ -2059,9 +2084,30 @@ function setLang(lang){
 
   document.getElementById('btn-ar').classList.toggle('active', lang==='ar');
   document.getElementById('btn-en').classList.toggle('active', lang==='en');
+  document.getElementById('btn-ar').setAttribute('aria-pressed', lang==='ar');
+  document.getElementById('btn-en').setAttribute('aria-pressed', lang==='en');
 
   renderAll();
-  document.getElementById('mnav').classList.remove('open');
+  closeMobileNav();
+}
+
+function toggleMobileNav(){
+  const m = document.getElementById('mnav');
+  const burger = document.querySelector('.burger');
+  const open = m.classList.toggle('open');
+  if(burger){
+    burger.setAttribute('aria-expanded', open);
+    burger.setAttribute('aria-label', open ? (currentLang==='ar' ? 'إغلاق القائمة' : 'Close menu') : (currentLang==='ar' ? 'فتح القائمة' : 'Open menu'));
+  }
+}
+function closeMobileNav(){
+  const m = document.getElementById('mnav');
+  const burger = document.querySelector('.burger');
+  m.classList.remove('open');
+  if(burger){
+    burger.setAttribute('aria-expanded', 'false');
+    burger.setAttribute('aria-label', currentLang==='ar' ? 'فتح القائمة' : 'Open menu');
+  }
 }
 
 /* ===== AUTH / EDIT MODE (public = read-only, admin = signs in to edit) ===== */
@@ -2513,7 +2559,7 @@ document.addEventListener('click', function(e){
 
 /* close mobile nav on link click */
 document.querySelectorAll('.mobile-nav a').forEach(a=>{
-  a.addEventListener('click', ()=>document.getElementById('mnav').classList.remove('open'));
+  a.addEventListener('click', ()=>closeMobileNav());
 });
 
 /* ===== EXPOSE TO window =====
@@ -2524,6 +2570,8 @@ document.querySelectorAll('.mobile-nav a').forEach(a=>{
    generated inside a render function — must be listed here. */
 Object.assign(window, {
   setLang,
+  toggleMobileNav,
+  closeMobileNav,
   toggleEditMode,
   doLogout,
   resetAllData,
