@@ -738,7 +738,7 @@ body.edit-mode .about .section-delete-btn{top:24px;inset-inline-end:24px;}
 .featured-work:hover .featured-play{transform:translate(-50%,-50%) scale(1.12);}
 .featured-caption{padding:26px;}
 .featured-caption h3{font-size:22px;margin:12px 0 8px;}
-.featured-caption p{color:var(--muted);font-size:14.5px;}
+.featured-caption .desc-line-wrap{margin:0;}
 .featured-block{position:relative;}
 .featured-block .section-delete-btn{top:0;inset-inline-end:0;}
 
@@ -840,7 +840,7 @@ body.edit-mode .logo-slot-add{display:flex;}
   margin-bottom:14px;
 }
 .port-body h3{font-size:21px;margin-bottom:10px;}
-.port-body p{color:var(--muted);font-size:14.5px;}
+.port-body .desc-line-wrap{margin:0 0 6px;}
 
 /* ---- Portfolio subsections ---- */
 .portfolio-subsection{margin-bottom:56px;}
@@ -919,7 +919,9 @@ body.edit-mode .logo-slot-add{display:flex;}
   text-align:center;
   min-height:22px;
 }
-.gallery-caption{
+.desc-line-wrap{margin:0;}
+.gallery-caption,
+.desc-highlight{
   display:inline;
   font-family:inherit;
   font-size:15px;
@@ -931,7 +933,8 @@ body.edit-mode .logo-slot-add{display:flex;}
   box-decoration-break:clone;
   -webkit-box-decoration-break:clone;
 }
-.gallery-caption:empty{background:none;padding:0;}
+.gallery-caption:empty,
+.desc-highlight:empty{background:none;padding:0;}
 .gallery-add-btn{
   display:none;
   align-items:center;
@@ -1210,7 +1213,7 @@ footer{
       <div class="featured-caption">
         <span class="port-tag" data-edit-key="featured-tag" data-ar="أبرز عمل" data-en="Featured Work">أبرز عمل</span>
         <h3 data-edit-key="featured-title" data-ar="عشقناك كالمستحيل — أواصر" data-en="Ashaqnak Kal Mustaheel — Awasr">عشقناك كالمستحيل — أواصر</h3>
-        <p data-edit-key="featured-desc" data-ar="شاهد العمل الوطني الكامل على يوتيوب" data-en="Watch the full national piece on YouTube">شاهد العمل الوطني الكامل على يوتيوب</p>
+        <p class="desc-line-wrap"><span class="desc-highlight" data-edit-key="featured-desc" data-ar="شاهد العمل الوطني الكامل على يوتيوب" data-en="Watch the full national piece on YouTube">شاهد العمل الوطني الكامل على يوتيوب</span></p>
       </div>
     </a>
     <button class="link-edit-btn" style="margin:0 0 30px;" onclick="editFeaturedLink()" id="featured-link-btn">🔗 <span id="featured-link-label">تعديل رابط الفيديو</span></button>
@@ -1858,7 +1861,7 @@ function portfolioCardHTML(p, lang){
       <div class="port-body">
         <span class="port-tag" contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="tag">${lang==='ar'?p.tagAr:p.tagEn}</span>
         <h3 contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="title">${lang==='ar'?p.titleAr:p.titleEn}</h3>
-        <p contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="desc">${lang==='ar'?p.descAr:p.descEn}</p>
+        <p class="desc-line-wrap"><span class="desc-highlight" contenteditable="${editMode}" data-pf-id="${p.id}" data-pf-field="desc">${lang==='ar'?p.descAr:p.descEn}</span></p>
         <button class="link-edit-btn" onclick="event.preventDefault();event.stopPropagation();editPortfolioLink('${p.id}')">🔗 ${currentLang==='ar'?(p.link?'تعديل الرابط':'إضافة رابط'):(p.link?'Edit link':'Add link')}</button>
       </div>
     </${tag}>`;
