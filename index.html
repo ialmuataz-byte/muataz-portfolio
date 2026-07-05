@@ -891,33 +891,47 @@ body.edit-mode .logo-slot-add{display:flex;}
 .gallery-stage{
   position:relative;
   width:100%;
-  aspect-ratio:4/3;
   background:var(--card);
   border:1.5px solid var(--border);
   border-radius:20px;
   overflow:hidden;
 }
+.gallery-wrap:not(.has-slides) .gallery-stage{aspect-ratio:4/3;}
 .carousel-slide{
   position:absolute;
   inset:0;
   display:flex;
+  flex-direction:column;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   background:var(--card);
   opacity:0;
   pointer-events:none;
   transition:opacity .6s ease;
 }
-.carousel-slide.active{opacity:1;pointer-events:auto;}
-.carousel-slide-img{width:100%;height:100%;object-fit:contain;}
-.carousel-slide-icon{font-size:72px;}
-.gallery-caption{
-  margin:16px 6px 0;
-  font-size:15px;
-  color:var(--text);
+.carousel-slide.active{position:relative;inset:auto;opacity:1;pointer-events:auto;width:100%;}
+.carousel-slide-img{width:100%;height:auto;max-height:560px;object-fit:contain;display:block;}
+.carousel-slide-icon{font-size:72px;padding:70px 0;}
+.gallery-caption-wrap{
+  width:100%;
+  margin:0;
+  padding:14px 20px 18px;
   text-align:center;
   min-height:22px;
 }
+.gallery-caption{
+  display:inline;
+  font-family:inherit;
+  font-size:15px;
+  font-weight:700;
+  color:var(--dark);
+  line-height:2;
+  padding:2px 8px;
+  background:linear-gradient(to top, var(--yellow) 0, var(--yellow) 34%, transparent 34%);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.gallery-caption:empty{background:none;padding:0;}
 .gallery-add-btn{
   display:none;
   align-items:center;
@@ -1890,7 +1904,6 @@ function renderCarouselsList(category, lang){
           <button class="carousel-arrow carousel-prev" onclick="carouselMove('${category}','${c.id}',-1)" title="${currentLang==='ar'?'السابق':'Previous'}" aria-label="${currentLang==='ar'?'الصورة السابقة':'Previous image'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
           <button class="carousel-arrow carousel-next" onclick="carouselMove('${category}','${c.id}',1)" title="${currentLang==='ar'?'التالي':'Next'}" aria-label="${currentLang==='ar'?'الصورة التالية':'Next image'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
-        <p class="gallery-caption" id="gcap-${c.id}"></p>
         <div class="carousel-dots" id="gdots-${c.id}"></div>
         <button class="gallery-add-btn" onclick="addGalleryItem('${category}','${c.id}')" id="gadd-${c.id}">+ ${currentLang==='ar'?'إضافة صورة':'Add image'}</button>
       </div>
@@ -1912,8 +1925,11 @@ function renderCarouselStage(category, carouselId, lang){
   const stage = document.getElementById('gstage-'+carouselId);
   const dotsWrap = document.getElementById('gdots-'+carouselId);
   const wrap = document.getElementById('gwrap-'+carouselId);
-  const captionEl = document.getElementById('gcap-'+carouselId);
   if(!stage) return;
+
+  // Don't wipe the slides while a caption inside this stage is being edited
+  const ae = document.activeElement;
+  if(ae && stage.contains(ae) && ae.hasAttribute && ae.hasAttribute('data-gl-id')) return;
 
   const items = (state.galleries[category] || []).filter(g=>g.carouselId===carouselId);
   let idx = galleryActiveIndex[carouselId] || 0;
@@ -1930,6 +1946,16 @@ function renderCarouselStage(category, carouselId, lang){
     slide.innerHTML = g.image
       ? `<img src="${g.image}" class="carousel-slide-img" alt="${slideAlt}">`
       : `<div class="carousel-slide-icon">${g.icon || '🖼️'}</div>`;
+    const capWrap = document.createElement('p');
+    capWrap.className = 'gallery-caption-wrap';
+    const cap = document.createElement('span');
+    cap.className = 'gallery-caption';
+    cap.textContent = slideAlt;
+    cap.setAttribute('data-gl-id', g.id);
+    cap.setAttribute('data-gl-cat', category);
+    cap.setAttribute('contenteditable', editMode ? 'true' : 'false');
+    capWrap.appendChild(cap);
+    slide.appendChild(capWrap);
     if(i===idx){
       const badge = document.createElement('button');
       badge.type = 'button';
@@ -1954,15 +1980,6 @@ function renderCarouselStage(category, carouselId, lang){
 
   if(dotsWrap){
     dotsWrap.innerHTML = items.map((g,i)=>`<button class="carousel-dot ${i===idx?'active':''}" onclick="carouselGoTo('${category}','${carouselId}', ${i})" aria-label="${currentLang==='ar'?'الانتقال إلى الصورة '+(i+1):'Go to image '+(i+1)}" aria-current="${i===idx?'true':'false'}"></button>`).join('');
-  }
-  if(captionEl){
-    const active = items[idx];
-    captionEl.setAttribute('contenteditable', editMode ? 'true' : 'false');
-    if(active){ captionEl.setAttribute('data-gl-id', active.id); captionEl.setAttribute('data-gl-cat', category); }
-    else { captionEl.removeAttribute('data-gl-id'); captionEl.removeAttribute('data-gl-cat'); }
-    if(document.activeElement !== captionEl){
-      captionEl.textContent = active ? (lang==='ar'?active.captionAr:active.captionEn) : '';
-    }
   }
   if(wrap) wrap.classList.toggle('has-slides', items.length > 0);
 
