@@ -1103,7 +1103,7 @@ footer{
   <div class="load-mark" aria-hidden="true">
     <span></span><span></span><span></span>
   </div>
-  <span id="load-overlay-text">جارِ تحميل المحتوى...</span>
+  <span id="load-overlay-text">سعيد بوجودك هنا… شرّفت!</span>
 </div>
 
 <div class="edit-bar" id="edit-bar">
@@ -2174,7 +2174,7 @@ function updateEditChrome(){
   document.getElementById('hero-photo-badge-title').title = currentLang==='ar' ? 'تغيير الصورة' : 'Change photo';
   document.getElementById('hero-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
   document.getElementById('featured-move-hint').textContent = currentLang==='ar' ? 'اسحب لتحريك الصورة' : 'Drag to reposition';
-  document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'جارِ تحميل المحتوى...' : 'Loading content...';
+  document.getElementById('load-overlay-text').textContent = currentLang==='ar' ? 'سعيد بوجودك هنا… شرّفت!' : 'So glad you\'re here… it\'s an honor to welcome you!';
   Object.keys(SECTION_LABELS).forEach(id=>{
     const btn = document.getElementById('del-'+id);
     if(btn) btn.title = currentLang==='ar' ? ('حذف: '+SECTION_LABELS[id].ar) : ('Delete: '+SECTION_LABELS[id].en);
