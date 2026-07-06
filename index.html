@@ -1309,6 +1309,7 @@ footer{
 </div>
 
 <input type="file" id="file-input" accept="image/*" style="display:none;">
+<input type="file" id="multi-file-input" accept="image/*" multiple style="display:none;">
 <div class="upload-toast" id="upload-toast" role="status" aria-live="polite"></div>
 
 <!-- ============ FIREBASE (CDN, ES Modules — no npm) ============
@@ -1909,6 +1910,7 @@ function renderCarouselsList(category, lang){
         </div>
         <div class="carousel-dots" id="gdots-${c.id}"></div>
         <button class="gallery-add-btn" onclick="addGalleryItem('${category}','${c.id}')" id="gadd-${c.id}">+ ${currentLang==='ar'?'إضافة صورة':'Add image'}</button>
+        <button class="gallery-add-btn" onclick="addGalleryImages('${category}','${c.id}')" id="gaddmulti-${c.id}">🖼️ ${currentLang==='ar'?'إضافة مجموعة صور':'Add multiple images'}</button>
       </div>
     </div>`).join('');
 
@@ -2083,6 +2085,66 @@ function deleteGalleryItem(category, id){
   pushUndoSnapshot();
   deleteDoc(doc(col, id)).catch(err=>console.error(err));
 }
+
+/* ===== BULK IMAGE UPLOAD: pick several images at once and add each one
+   as a slide in the target carousel. Images are compressed one by one;
+   any that stay too large after compression are skipped with a notice. ===== */
+let pendingGalleryTarget = null; // {category, carouselId}
+
+function addGalleryImages(category, carouselId){
+  if(!currentUser){ alert(currentLang==='ar' ? 'سجّل الدخول كمشرف أولًا.' : 'Sign in as admin first.'); return; }
+  const col = GALLERY_COLLECTIONS[category];
+  if(!col || !carouselId) return;
+  pendingGalleryTarget = { category, carouselId };
+  document.getElementById('multi-file-input').click();
+}
+
+document.getElementById('multi-file-input').addEventListener('change', async function(e){
+  const files = Array.from(e.target.files || []);
+  const target = pendingGalleryTarget;
+  pendingGalleryTarget = null;
+  if(!files.length || !target){ e.target.value=''; return; }
+
+  const col = GALLERY_COLLECTIONS[target.category];
+  if(!col){ e.target.value=''; return; }
+
+  pushUndoSnapshot();
+  const existing = (state.galleries[target.category] || []).filter(g=>g.carouselId===target.carouselId);
+  let nextOrder = existing.length ? Math.max(...existing.map(g=>g.order||0))+1 : 0;
+  const firstNewIndex = existing.length;
+
+  let added = 0, skipped = 0;
+  for(let i=0; i<files.length; i++){
+    showUploadToast(currentLang==='ar'
+      ? `جارِ رفع الصورة ${i+1} من ${files.length}...`
+      : `Uploading image ${i+1} of ${files.length}...`);
+    try{
+      const { dataUrl } = await compressImage(files[i]);
+      if(dataUrl.length > MAX_IMAGE_BYTES){ skipped++; continue; }
+      await addDoc(col, {
+        order: nextOrder++,
+        carouselId: target.carouselId,
+        image: dataUrl,
+        captionAr: "وصف الصورة. انقر لتعديله.",
+        captionEn: "Image caption. Click to edit."
+      });
+      added++;
+    }catch(err){
+      console.error('Bulk image upload failed for one file:', err);
+      skipped++;
+    }
+  }
+
+  e.target.value = '';
+  if(added){
+    galleryActiveIndex[target.carouselId] = firstNewIndex;
+    pauseAutoRotate(target.carouselId);
+  }
+  const doneMsg = currentLang==='ar'
+    ? `تمت إضافة ${added} ${added===1?'صورة':'صور'}` + (skipped ? ` — تعذّر رفع ${skipped} (حجم كبير أو خطأ)` : '')
+    : `Added ${added} image${added===1?'':'s'}` + (skipped ? ` — ${skipped} skipped (too large or failed)` : '');
+  showUploadToast(doneMsg, 3500);
+});
 
 function renderSkills(lang){
   const grid = document.getElementById('skills-grid');
@@ -2759,6 +2821,7 @@ Object.assign(window, {
   deleteSkillItem,
   addSkillItem,
   addGalleryItem,
+  addGalleryImages,
   deleteGalleryItem,
   addCarousel,
   deleteCarousel,
