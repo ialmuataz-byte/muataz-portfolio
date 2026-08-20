@@ -1344,7 +1344,9 @@ footer{
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  let analytics = null;
+  try { analytics = getAnalytics(app); }
+  catch(e){ console.warn('Analytics disabled (this is fine):', e && e.message); }
   const db = getFirestore(app);
   const auth = getAuth(app);
 
@@ -1568,13 +1570,26 @@ async function seedIfEmpty(){
   }
 }
 
+function forceHideLoadOverlay(){
+  hasLoadedOnce = true;
+  const overlay = document.getElementById('load-overlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
 function maybeHideLoadOverlay(){
   if(contentLoaded && portfolioLoaded && skillsLoaded && Object.values(galleryLoaded).every(Boolean) && Object.values(carouselsLoaded).every(Boolean) && !hasLoadedOnce){
-    hasLoadedOnce = true;
-    const overlay = document.getElementById('load-overlay');
-    if(overlay) overlay.style.display = 'none';
+    forceHideLoadOverlay();
   }
 }
+
+/* Safety net: never let the loading screen hang forever.
+   If Firebase is slow, blocked, or partially failing, show the site anyway. */
+setTimeout(function(){
+  if(!hasLoadedOnce){
+    console.warn('Load overlay force-hidden after timeout (Firebase may be blocked or offline).');
+    forceHideLoadOverlay();
+  }
+}, 7000);
 
 /* ===== REALTIME LISTENERS — load the latest Firestore data automatically ===== */
 function attachListeners(){
@@ -1598,6 +1613,7 @@ function attachListeners(){
     maybeHideLoadOverlay();
   }, err=>{
     console.error('Firestore content listener error:', err);
+    contentLoaded = true; maybeHideLoadOverlay();
     alert(currentLang==='ar' ? 'تعذّر الاتصال بقاعدة البيانات. تحقق من إعداد Firebase الخاص بك.' : 'Could not connect to the database. Check your Firebase setup.');
   });
 
@@ -1606,14 +1622,14 @@ function attachListeners(){
     portfolioLoaded = true;
     renderPortfolio(currentLang);
     maybeHideLoadOverlay();
-  }, err=>console.error('Firestore portfolio listener error:', err));
+  }, err=>{ console.error('Firestore portfolio listener error:', err); portfolioLoaded = true; maybeHideLoadOverlay(); });
 
   onSnapshot(query(skillsCol, orderBy('order')), snap=>{
     state.skills = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
     skillsLoaded = true;
     renderSkills(currentLang);
     maybeHideLoadOverlay();
-  }, err=>console.error('Firestore skills listener error:', err));
+  }, err=>{ console.error('Firestore skills listener error:', err); skillsLoaded = true; maybeHideLoadOverlay(); });
 
   ['freelance','asaas','participation'].forEach(cat=>{
     onSnapshot(query(CAROUSEL_COLLECTIONS[cat], orderBy('order')), snap=>{
@@ -1621,14 +1637,14 @@ function attachListeners(){
       carouselsLoaded[cat] = true;
       renderCarouselsList(cat, currentLang);
       maybeHideLoadOverlay();
-    }, err=>console.error('Firestore carousels listener error ('+cat+'):', err));
+    }, err=>{ console.error('Firestore carousels listener error ('+cat+'):', err); carouselsLoaded[cat] = true; maybeHideLoadOverlay(); });
 
     onSnapshot(query(GALLERY_COLLECTIONS[cat], orderBy('order')), snap=>{
       state.galleries[cat] = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
       galleryLoaded[cat] = true;
       renderCarouselsList(cat, currentLang);
       maybeHideLoadOverlay();
-    }, err=>console.error('Firestore gallery listener error ('+cat+'):', err));
+    }, err=>{ console.error('Firestore gallery listener error ('+cat+'):', err); galleryLoaded[cat] = true; maybeHideLoadOverlay(); });
   });
 }
 
